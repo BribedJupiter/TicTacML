@@ -14,7 +14,7 @@ FetchContent_Declare(SFML
     SYSTEM)
 FetchContent_MakeAvailable(SFML)
 
-add_executable(main src/main.cpp lib/glad/src/glad.c)
-target_include_directories(main PRIVATE lib/glad/include PRIVATE lib/glad/KHR)
+add_executable(main src/main.cpp src/GameBoard.cpp lib/glad/src/glad.c)
+target_include_directories(main PRIVATE src lib/glad/include PRIVATE lib/glad/KHR)
 target_compile_features(main PRIVATE cxx_std_17)
 target_link_libraries(main PRIVATE SFML::Graphics SFML::Audio SFML::Network)

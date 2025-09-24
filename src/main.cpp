@@ -2,12 +2,13 @@
 #include <SFML/Window.hpp>
 #include <SFML/OpenGL.hpp>
 
-#include <array>
 #include <exception>
 #include <iostream>
 #include <fstream>
 #include <iterator>
 #include <string>
+
+#include "Game.h"
 
 std::string loadShaders(const std::string filename) {
     std::ifstream file;
@@ -24,45 +25,11 @@ std::string loadShaders(const std::string filename) {
     return text;
 }
 
-class GameBoard {
-    // The Tic Tac Toe board is composed of 9 cells
-    // A sector can either have nothing, an X, or a circle
-    // The board looks something like this:
-    /*
-        _|_|_
-        _|_|_
-         | |
-    */
-    public:
-        // Draw the game board outline
-        void draw_board();
-
-        // Draw a circle centered in specific a cell
-        void place_circle(int cellIndex);
-
-        // Draw an X centered in specific a cell
-        void place_x(int cellIndex);
-
-        // Debug print the grid to output
-        void print_grid();
-
-    private:
-        enum CellState {
-            CLEAR,
-            CIRCLE,
-            X
-        };
-
-        // A 2D array storing the current state of each tic-tac-toe cell on the grid 
-        std::array<std::array<CellState, 3>, 3> grid;
-
-        // Helper function to draw one of the rectangle lines on the board 
-        void draw_rectangle();
-};
-
-
-
 int main() {
+    //*********************************************************
+    // Create the SFML window, OpenGL context, and setup GLAD
+    //*********************************************************
+
     // OpenGL Context Setup
     sf::ContextSettings contextSettings;
     contextSettings.depthBits = 24;
@@ -86,12 +53,20 @@ int main() {
         return -1;
     }
 
+    //*********************************************************
+    // Load shaders from their corresponding files
+    //*********************************************************
+
     // Load Shaders
     std::string vertexShaderString = loadShaders("C:/Users/jgb10/dev/obelisk/src/vertexShader.glsl");
     std::string fragmentShaderString = loadShaders("C:/Users/jgb10/dev/obelisk/src/fragmentShader.glsl");
     if (vertexShaderString == "" || fragmentShaderString == "") {
         return -1;
     }
+
+    //*********************************************************
+    // Prepare OpenGL and its shader pipeline
+    //*********************************************************
 
     // GL Setup
     glClearColor(0.1f, 0.0f, 0.1f, 1.0f);
@@ -184,6 +159,10 @@ int main() {
     // Note that the previous VBO is still bound, so this will apply to that
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
     glEnableVertexAttribArray(0);
+
+    //*********************************************************
+    // Begin the main game loop
+    //*********************************************************
 
     bool running = true;
     while (running) {

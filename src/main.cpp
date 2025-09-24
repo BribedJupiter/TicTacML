@@ -3,12 +3,14 @@
 #include <SFML/OpenGL.hpp>
 
 #include <exception>
+#include <filesystem>
 #include <iostream>
 #include <fstream>
 #include <iterator>
 #include <string>
 
 #include "Game.h"
+#include "constants.h"
 
 std::string loadShaders(const std::string filename) {
     std::ifstream file;
@@ -58,8 +60,10 @@ int main() {
     //*********************************************************
 
     // Load Shaders
-    std::string vertexShaderString = loadShaders("C:/Users/jgb10/dev/obelisk/src/vertexShader.glsl");
-    std::string fragmentShaderString = loadShaders("C:/Users/jgb10/dev/obelisk/src/fragmentShader.glsl");
+    std::cout << "Working from " << std::filesystem::current_path() << std::endl;
+    std::cout << "Shader path is " << SHADER_PATH << std::endl;
+    std::string vertexShaderString = loadShaders(TTT::vertexShaderPath);
+    std::string fragmentShaderString = loadShaders(TTT::fragmentShaderPath);
     if (vertexShaderString == "" || fragmentShaderString == "") {
         return -1;
     }

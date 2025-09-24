@@ -52,8 +52,12 @@ class Renderer {
         void resize(const int width, const int height);
 
         // Load a shader and return an empty string on failure
+        // It will convert the text from the shader file into an
+        // std::string object so that it can be compiled by OpenGL.
         std::string loadShader(const std::string filename);
 
+        // Returns true if the renderer initialized failed,
+        // otherwise returns false
         bool initFailed() {return initFailure;}
 
         // Clean up and shut down OpenGL and its context

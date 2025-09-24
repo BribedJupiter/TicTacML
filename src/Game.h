@@ -67,9 +67,9 @@ class GameBoard {
         ~GameBoard();
     private:
         enum CellState {
-            CLEAR,
-            CIRCLE,
-            X
+            CLEAR = 0,
+            CIRCLE = 1,
+            X = 2
         };
 
         Renderer& glRenderer;

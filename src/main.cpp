@@ -62,9 +62,6 @@ int main() {
         // Draw the TicTacToe board on the screen
         board.drawBoard();
 
-        // Render a new frame to the screen
-        // glRenderer.render();
-
         // End the frame (internally swaps front and back buffers)
         window.display();
     }

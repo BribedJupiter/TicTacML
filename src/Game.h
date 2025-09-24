@@ -1,6 +1,7 @@
 #pragma once
 
 #include <array>
+#include <vector>
 #include <string>
 
 class Renderer {
@@ -11,6 +12,9 @@ class Renderer {
 
         // Perform all the necessary setup steps before rendering can occur
         void prepareRender();
+
+        // Set the vertices and indices to be drawn from an outside source
+        void setVertices(const std::pair<std::vector<float>, std::vector<int>> vertPair);
 
         // Called if a resize window event occurs
         void resize(const int width, const int height);
@@ -35,6 +39,8 @@ class Renderer {
     
     private:
         // If construction fails, will be set to true
+        std::vector<float> vertices;
+        std::vector<int> indices;
         int shaderProgramObject = 0;
         int vertexArrayObject = 0;
         bool initFailure = false;
@@ -51,6 +57,10 @@ class GameBoard {
     */
     public:
         GameBoard(Renderer& renderer);
+
+        // Generate the OpenGL vertices and relevant indices for the board
+        // in normalized device coordinates
+        std::pair<std::vector<float>, std::vector<int>> generateBoardVertices();
 
         // Draw the game board outline
         void drawBoard();

@@ -33,40 +33,40 @@ std::pair<std::vector<float>, std::vector<int>> GameBoard::generateBoardVertices
     };
     
     // Left Horizontal
-    std::array<float, 3> lh_botLeft  = {-0.5f - offset, -1.0f, 0.0f};
-    std::array<float, 3> lh_botRight = {-0.5f + offset, -1.0f, 0.0f};
-    std::array<float, 3> lh_topLeft  = {-0.5f - offset, 1.0f, 0.0f};
-    std::array<float, 3> lh_topRight = {-0.5f + offset, 1.0f, 0.0f};
+    std::array<float, 3> lh_botLeft  = {-0.33f - offset, -0.9f, 0.0f};
+    std::array<float, 3> lh_botRight = {-0.33f + offset, -0.9f, 0.0f};
+    std::array<float, 3> lh_topLeft  = {-0.33f - offset, 0.9f, 0.0f};
+    std::array<float, 3> lh_topRight = {-0.33f + offset, 0.9f, 0.0f};
     lineArrays.push_back(lh_botLeft);
     lineArrays.push_back(lh_botRight);
     lineArrays.push_back(lh_topLeft);
     lineArrays.push_back(lh_topRight);
 
     // Right Horizontal
-    std::array<float, 3> rh_botLeft  = {0.5f - offset, -1.0f, 0.0f};
-    std::array<float, 3> rh_botRight = {0.5f + offset, -1.0f, 0.0f};
-    std::array<float, 3> rh_topLeft  = {0.5f - offset, 1.0f, 0.0f};
-    std::array<float, 3> rh_topRight = {0.5f + offset, 1.0f, 0.0f};
+    std::array<float, 3> rh_botLeft  = {0.33f - offset, -0.9f, 0.0f};
+    std::array<float, 3> rh_botRight = {0.33f + offset, -0.9f, 0.0f};
+    std::array<float, 3> rh_topLeft  = {0.33f - offset, 0.9f, 0.0f};
+    std::array<float, 3> rh_topRight = {0.33f + offset, 0.9f, 0.0f};
     lineArrays.push_back(rh_botLeft);
     lineArrays.push_back(rh_botRight);
     lineArrays.push_back(rh_topLeft);
     lineArrays.push_back(rh_topRight);
 
     // Top vertical
-    std::array<float, 3> tv_botLeft  = {-1.0f, 0.5f - offset, 0.0f};
-    std::array<float, 3> tv_topLeft  = {-1.0f, 0.5f + offset, 0.0f};
-    std::array<float, 3> tv_botRight = {1.0f, 0.5f - offset, 0.0f};
-    std::array<float, 3> tv_topRight = {1.0f, 0.5f + offset, 0.0f};
+    std::array<float, 3> tv_botLeft  = {-0.9f, 0.33f - offset, 0.0f};
+    std::array<float, 3> tv_topLeft  = {-0.9f, 0.33f + offset, 0.0f};
+    std::array<float, 3> tv_botRight = {0.9f, 0.33f - offset, 0.0f};
+    std::array<float, 3> tv_topRight = {0.9f, 0.33f + offset, 0.0f};
     lineArrays.push_back(tv_botLeft);
     lineArrays.push_back(tv_topLeft);
     lineArrays.push_back(tv_botRight);
     lineArrays.push_back(tv_topRight);
 
     // Bottom vertical
-    std::array<float, 3> bv_botLeft  = {-1.0f, -0.5f - offset, 0.0f};
-    std::array<float, 3> bv_topLeft  = {-1.0f, -0.5f + offset, 0.0f};
-    std::array<float, 3> bv_botRight = {1.0f, -0.5f - offset, 0.0f};
-    std::array<float, 3> bv_topRight = {1.0f, -0.5f + offset, 0.0f};
+    std::array<float, 3> bv_botLeft  = {-0.9f, -0.33f - offset, 0.0f};
+    std::array<float, 3> bv_topLeft  = {-0.9f, -0.33f + offset, 0.0f};
+    std::array<float, 3> bv_botRight = {0.9f, -0.33f - offset, 0.0f};
+    std::array<float, 3> bv_topRight = {0.9f, -0.33f + offset, 0.0f};
     lineArrays.push_back(bv_botLeft);
     lineArrays.push_back(bv_topLeft);
     lineArrays.push_back(bv_botRight);
@@ -89,7 +89,7 @@ void GameBoard::drawBoard() {
     // 200 and 400. We want the same in the y direction, from height
     // 0 to 600 and at x positions 200 and 400. We can generalize these
     // 200 and 400 numbers to 1/3 and 2/3 of the screen's dimensions.
-    glRenderer.prepareRender();
+    glRenderer.draw();
 }
 
 void GameBoard::placeCircle(const int cellIndex) {

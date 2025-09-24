@@ -88,7 +88,7 @@ Renderer::Renderer() {
     glDeleteShader(fragmentShader);
 }
 
-void Renderer::prepareRender() {
+void Renderer::draw() {
     // Clear buffers
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 

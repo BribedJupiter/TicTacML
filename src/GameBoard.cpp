@@ -1,21 +1,29 @@
 #include "Game.h"
 
-void GameBoard::draw_board() {
+GameBoard::GameBoard(Renderer& renderer) : glRenderer(renderer) {}
+
+void GameBoard::drawBoard() {
+    // We want to draw 4 lines on the board. 
+    // As an example, let's say our screen is 600x600 pixels.
+    // We want lines in the x direction from 0 to 600 at heights
+    // 200 and 400. We want the same in the y direction, from height
+    // 0 to 600 and at x positions 200 and 400. We can generalize these
+    // 200 and 400 numbers to 1/3 and 2/3 of the screen's dimensions.
+    glRenderer.prepareRender();
+}
+
+void GameBoard::placeCircle(const int cellIndex) {
 
 }
 
-void GameBoard::place_circle(int cellIndex) {
+void GameBoard::placeX(const int cellIndex) {
 
 }
 
-void GameBoard::place_x(int cellIndex) {
+void GameBoard::printGrid() {
 
 }
 
-void GameBoard::print_grid() {
+GameBoard::~GameBoard() {
 
-}
-
-void GameBoard::draw_rectangle() {
-    
 }

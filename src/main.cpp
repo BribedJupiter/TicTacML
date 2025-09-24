@@ -20,7 +20,7 @@ int main() {
     contextSettings.sRgbCapable = true;
 
     // SFML Window Setup
-    sf::Window window(sf::VideoMode({1920u, 1080u}), "Obelisk", sf::Style::Default, sf::State::Windowed, contextSettings);
+    sf::Window window(sf::VideoMode({TTT::screenWidth, TTT::screenHeight}), "Obelisk", sf::Style::Default, sf::State::Windowed, contextSettings);
     window.setFramerateLimit(144);
     window.setVerticalSyncEnabled(true);
     if (!window.setActive(true)) {
@@ -37,6 +37,9 @@ int main() {
     if (glRenderer.initFailed()) {
         return -1;
     }
+
+    // Setup the game
+    GameBoard board = GameBoard(glRenderer);
     
     //*********************************************************
     // Begin the main game loop
@@ -56,8 +59,11 @@ int main() {
             }
         }
 
+        // Draw the TicTacToe board on the screen
+        board.drawBoard();
+
         // Render a new frame to the screen
-        glRenderer.render();
+        // glRenderer.render();
 
         // End the frame (internally swaps front and back buffers)
         window.display();

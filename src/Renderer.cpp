@@ -126,7 +126,7 @@ Renderer::Renderer() {
     glEnableVertexAttribArray(0);
 }
 
-void Renderer::render() {
+void Renderer::prepareRender() {
     // Clear buffers
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
@@ -139,6 +139,14 @@ void Renderer::render() {
 
 void Renderer::resize(const int width, const int height) {
     glViewport(0, 0, width, height);
+}
+
+void Renderer::drawLine() {
+    
+}
+
+void Renderer::drawCircle() {
+
 }
 
 std::string Renderer::loadShader(const std::string filename) {

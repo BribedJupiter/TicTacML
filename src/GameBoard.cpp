@@ -67,10 +67,10 @@ std::pair<std::vector<float>, std::vector<int>> GameBoard::generateBoardVertices
     std::array<float, 3> bv_topLeft  = {-1.0f, -0.5f + offset, 0.0f};
     std::array<float, 3> bv_botRight = {1.0f, -0.5f - offset, 0.0f};
     std::array<float, 3> bv_topRight = {1.0f, -0.5f + offset, 0.0f};
-    lineArrays.push_back(tv_botLeft);
-    lineArrays.push_back(tv_topLeft);
-    lineArrays.push_back(tv_botRight);
-    lineArrays.push_back(tv_topRight);
+    lineArrays.push_back(bv_botLeft);
+    lineArrays.push_back(bv_topLeft);
+    lineArrays.push_back(bv_botRight);
+    lineArrays.push_back(bv_topRight);
 
     // Concatenate into one giant vector
     for (auto arr : lineArrays) {

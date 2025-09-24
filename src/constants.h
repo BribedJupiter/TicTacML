@@ -7,7 +7,7 @@ namespace TTT {
     const std::string fragmentShaderPath = shaderSourceDir.string() + "/fragmentShader.glsl";
     constexpr int screenWidth = 600;
     constexpr int screenHeight = 600;
-    constexpr int lineWidth = 10;
+    constexpr int lineWidth = 5;
 };
 
 

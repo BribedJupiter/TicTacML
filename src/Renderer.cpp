@@ -103,21 +103,6 @@ void Renderer::setVertices(const std::pair<std::vector<float>, std::vector<int>>
     vertices = vertPair.first;
     indices = vertPair.second;
 
-    // See the LearnOpenGL textbook
-    // Store the rectangle's vertices
-    // float vertices[] = {
-    //     -0.5f, -0.5f, 0.0f, // bottom left
-    //     0.5f, -0.5f, 0.0f, // bottom right
-    //     0.5f, 0.5f, 0.0f, // top right
-    //     -0.5f, 0.5f, 0.0f // top left
-    // };
-
-    // Store which vertices correspond to which shape
-    // unsigned int indices[] = {
-    //     0, 1, 3, // triangle 1
-    //     1, 2, 3 // triangle 2
-    // };
-
     // Create a vertex array object (VAO) to store vertex attribute states
     unsigned int VAO;
     glGenVertexArrays(1, &VAO);
@@ -128,13 +113,13 @@ void Renderer::setVertices(const std::pair<std::vector<float>, std::vector<int>>
     unsigned int VBO;
     glGenBuffers(1, &VBO);
     glBindBuffer(GL_ARRAY_BUFFER, VBO);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices.data(), GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(float) * vertices.size(), vertices.data(), GL_STATIC_DRAW);
 
     // Store which indices OpenGL should use to draw
     unsigned int EBO;
     glGenBuffers(1, &EBO); 
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices.data(), GL_STATIC_DRAW);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(int) * indices.size(), indices.data(), GL_STATIC_DRAW);
 
     // Link the vertex attributes
     // Note that the previous VBO is still bound, so this will apply to that

@@ -8,18 +8,22 @@ GameBoard::GameBoard(Renderer& renderer) : glRenderer(renderer) {
         row.fill(CLEAR);
     }
 
-    // auto vertPair = generateBoardVertices();
-    // for (int i = 0; i < 9; i++) {
-    //     auto pair = generateXVertices(i);
-    //     for (auto vert : pair.first) {
-    //         vertPair.first.push_back(vert);
-    //     }
-    //     int offset = vertPair.second.size();
-    //     for (auto index : pair.second) {
-    //         vertPair.second.push_back(index + offset);
-    //     }
-    // }
-    const auto vertPair = generateXVertices(5);
+    auto vertPair = generateBoardVertices();
+    // We already have 16 vertices in the array, so we need to update the indices 
+    // of the Xs we draw next to account for this.
+    static int offset = 16; 
+    for (int i = 0; i < 9; i++) {
+        auto pair = generateXVertices(i);
+        for (auto vert : pair.first) {
+            vertPair.first.push_back(vert);
+        }
+        for (auto index : pair.second) {
+            vertPair.second.push_back(index + offset);
+        }
+        // Offset by the number of vertices in each drawn X
+        offset += 8;
+    }
+    // const auto vertPair = generateXVertices(5);
     glRenderer.setVertices(vertPair);
 }
 

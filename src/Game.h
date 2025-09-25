@@ -43,9 +43,12 @@ class Renderer {
         std::vector<int> indices;
         int shaderProgramObject = 0;
         int vertexArrayObject = 0;
-        
+
         // If construction fails, will be set to true
         bool initFailure = false;
+
+        // To ensure that vertices have been set first
+        bool readyToRender = false;
 };
 
 class GameBoard {

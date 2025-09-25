@@ -17,7 +17,6 @@ Renderer::Renderer() {
     //*********************************************************
 
     // Load Shaders
-    std::cout << "Working from " << std::filesystem::current_path() << std::endl;
     std::cout << "Shader path is " << SHADER_PATH << std::endl;
     std::string vertexShaderString = loadShader(TTT::vertexShaderPath);
     std::string fragmentShaderString = loadShader(TTT::fragmentShaderPath);
@@ -89,6 +88,10 @@ Renderer::Renderer() {
 }
 
 void Renderer::draw() {
+    if (!readyToRender) {
+        return;
+    }
+
     // Clear buffers
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
@@ -125,6 +128,8 @@ void Renderer::setVertices(const std::pair<std::vector<float>, std::vector<int>>
     // Note that the previous VBO is still bound, so this will apply to that
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
     glEnableVertexAttribArray(0);
+
+    readyToRender = true;
 }
 
 void Renderer::resize(const int width, const int height) {

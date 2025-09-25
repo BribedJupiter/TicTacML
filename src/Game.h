@@ -67,12 +67,6 @@ class GameBoard {
         // Draw the game board outline
         void drawBoard();
 
-        // Draw a circle centered in specific a cell
-        std::pair<std::vector<float>, std::vector<int>> generateCircleVertices(const int cellIndex);
-
-        // Draw an X centered in specific a cell
-        std::pair<std::vector<float>, std::vector<int>> generateXVertices(const int cellIndex);
-
         // Debug print the grid to output
         void printGrid();
 
@@ -85,6 +79,15 @@ class GameBoard {
         };
 
         Renderer& glRenderer;
+
+        // Draw a circle centered in specific a cell
+        std::pair<std::vector<float>, std::vector<int>> generateCircleVertices(const int cellIndex);
+
+        // Draw an X centered in specific a cell
+        std::pair<std::vector<float>, std::vector<int>> generateXVertices(const int cellIndex);
+
+        // Get the proper coordinate range for each cell
+        std::array<std::array<float, 2>, 2> getCoordinateRange(const int cellIndex);
 
         // A 2D array storing the current state of each tic-tac-toe cell on the grid 
         std::array<std::array<CellState, 3>, 3> grid;

@@ -11,9 +11,10 @@ GameBoard::GameBoard(Renderer& renderer) : glRenderer(renderer) {
     auto vertPair = generateBoardVertices();
     // We already have 16 vertices in the array, so we need to update the indices 
     // of the Xs we draw next to account for this.
-    static int offset = 16; 
+    constexpr int dimNum = 3; // The number of dimensions in the position attribute
+    static int offset = vertPair.first.size() / dimNum; 
     for (int i = 0; i < 9; i++) {
-        auto pair = generateXVertices(i);
+        auto pair = generateCircleVertices(i);
         for (auto vert : pair.first) {
             vertPair.first.push_back(vert);
         }
@@ -21,9 +22,9 @@ GameBoard::GameBoard(Renderer& renderer) : glRenderer(renderer) {
             vertPair.second.push_back(index + offset);
         }
         // Offset by the number of vertices in each drawn X
-        offset += 8;
+        offset += pair.first.size() / dimNum;
     }
-    // const auto vertPair = generateXVertices(5);
+    // const auto circleVertPair = generateCircleVertices(0);
     glRenderer.setVertices(vertPair);
 }
 
@@ -107,26 +108,7 @@ void GameBoard::drawBoard() {
     glRenderer.draw();
 }
 
-std::pair<std::vector<float>, std::vector<int>> GameBoard::generateCircleVertices(const int cellIndex) {
-    std::vector<float> verts;
-    std::vector<int> indices;
-    return std::pair{verts, indices};
-}
-
-std::pair<std::vector<float>, std::vector<int>> GameBoard::generateXVertices(const int cellIndex) {
-    // We imagine each cell has its own local coordinate system
-    // in the range [0, 1] for each axis. 
-    // The below array lists the central points for each X that
-    // will be connected. 
-    // std::array<std::array<float, 2>, 4> xPoints = {
-    //     {
-    //         {0.33f, 0.66f},
-    //         {0.33f, 0.33f},
-    //         {0.66f, 0.33f},
-    //         {0.66f, 0.66f}
-    //     }
-    // };
-
+std::array<std::array<float, 2>, 2> GameBoard::getCoordinateRange(const int cellIndex) {
     // Next, we translate these local points to global points depending
     // which cell we're in. There are 3 possible ranges to which we 
     // need to translate:
@@ -178,8 +160,60 @@ std::pair<std::vector<float>, std::vector<int>> GameBoard::generateXVertices(con
             localRange = {ranges[2], ranges[0]};
             break;
     }
+    return localRange;
+}
+
+std::pair<std::vector<float>, std::vector<int>> GameBoard::generateCircleVertices(const int cellIndex) {
+    // We imagine each cell has its own local coordinate system
+    // in the range [0, 1] for each axis. 
+    // The below array lists the central points for each X that
+    // will be connected. 
+    // std::array<std::array<float, 2>, 4> xPoints = {
+    //     {
+    //         {0.33f, 0.5},
+    //         {0.5, 0.33f},
+    //         {0.66f, 0.5},
+    //         {0.5, 0.66f}
+    //     }
+    // };
 
     // Now that we know the correct range, we figure out where the x points should be globally
+    const auto localRange = getCoordinateRange(cellIndex); 
+    const float quarterRangeWidthX = (localRange[0][1] - localRange[0][0]) / 4.0f;
+    const float quarterRangeWidthY = (localRange[1][1] - localRange[1][0]) / 4.0f;
+    std::vector<float> rawCPoints = {
+            localRange[0][0] + quarterRangeWidthX, localRange[1][0] + quarterRangeWidthY, 0.0f,
+            localRange[0][0] + quarterRangeWidthX, localRange[1][1] - quarterRangeWidthY, 0.0f,
+            localRange[0][1] - quarterRangeWidthX, localRange[1][1] - quarterRangeWidthY, 0.0f,
+            localRange[0][1] - quarterRangeWidthX, localRange[1][0] + quarterRangeWidthY, 0.0f
+    };
+
+    // We don't need to add an offset as we're just filling a cell.
+    // Since we have 2 triangles, each consisting of 4 points, we will need an array of length 8.
+    std::vector<int> indices = {
+        0, 1, 2,
+        0, 3, 2
+    };
+
+    return std::pair{rawCPoints, indices};
+}
+
+std::pair<std::vector<float>, std::vector<int>> GameBoard::generateXVertices(const int cellIndex) {
+    // We imagine each cell has its own local coordinate system
+    // in the range [0, 1] for each axis. 
+    // The below array lists the central points for each X that
+    // will be connected. 
+    // std::array<std::array<float, 2>, 4> xPoints = {
+    //     {
+    //         {0.33f, 0.66f},
+    //         {0.33f, 0.33f},
+    //         {0.66f, 0.33f},
+    //         {0.66f, 0.66f}
+    //     }
+    // };
+
+    // Now that we know the correct range, we figure out where the x points should be globally
+    const auto localRange = getCoordinateRange(cellIndex); 
     const float quarterRangeWidthX = (localRange[0][1] - localRange[0][0]) / 4.0f;
     const float quarterRangeWidthY = (localRange[1][1] - localRange[1][0]) / 4.0f;
     std::array<std::array<float, 2>, 4> xPoints = {

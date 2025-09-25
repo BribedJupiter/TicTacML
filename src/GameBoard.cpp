@@ -8,8 +8,18 @@ GameBoard::GameBoard(Renderer& renderer) : glRenderer(renderer) {
         row.fill(CLEAR);
     }
 
-    // const auto vertPair = generateBoardVertices();
-    const auto vertPair = generateXVertices(3);
+    // auto vertPair = generateBoardVertices();
+    // for (int i = 0; i < 9; i++) {
+    //     auto pair = generateXVertices(i);
+    //     for (auto vert : pair.first) {
+    //         vertPair.first.push_back(vert);
+    //     }
+    //     int offset = vertPair.second.size();
+    //     for (auto index : pair.second) {
+    //         vertPair.second.push_back(index + offset);
+    //     }
+    // }
+    const auto vertPair = generateXVertices(5);
     glRenderer.setVertices(vertPair);
 }
 
@@ -133,34 +143,47 @@ std::pair<std::vector<float>, std::vector<int>> GameBoard::generateXVertices(con
         {0.33f, 1.0f}
       }  
     };
-    std::array<float, 2> localRange;
+    std::array<std::array<float, 2>, 2> localRange;
     switch(cellIndex) {
         case 0:
+            localRange = {ranges[0], ranges[2]};
+            break;
         case 3:
+            localRange = {ranges[0], ranges[1]};
+            break;
         case 6:
-            localRange = ranges[0];
+            localRange = {ranges[0], ranges[0]};
             break;
         case 1:
+            localRange = {ranges[1], ranges[2]};
+            break;
         case 4:
+            localRange = {ranges[1], ranges[1]};
+            break;
         case 7:
-            localRange = ranges[1];
+            localRange = {ranges[1], ranges[0]};
             break;
         case 2:
+            localRange = {ranges[2], ranges[2]};
+            break;
         case 5:
+            localRange = {ranges[2], ranges[1]};
+            break;
         case 8:
         default:
-            localRange = ranges[2];
+            localRange = {ranges[2], ranges[0]};
             break;
     }
 
     // Now that we know the correct range, we figure out where the x points should be globally
-    const float quarterRangeWidth = (localRange[1] - localRange[0]) / 4.0f;
+    const float quarterRangeWidthX = (localRange[0][1] - localRange[0][0]) / 4.0f;
+    const float quarterRangeWidthY = (localRange[1][1] - localRange[1][0]) / 4.0f;
     std::array<std::array<float, 2>, 4> xPoints = {
         {
-            {localRange[0] + quarterRangeWidth, localRange[1] - quarterRangeWidth},
-            {localRange[0] + quarterRangeWidth, localRange[0] + quarterRangeWidth},
-            {localRange[1] - quarterRangeWidth, localRange[0] + quarterRangeWidth},
-            {localRange[1] - quarterRangeWidth, localRange[1] - quarterRangeWidth}
+            {localRange[0][0] + quarterRangeWidthX, localRange[1][1] - quarterRangeWidthY},
+            {localRange[0][0] + quarterRangeWidthX, localRange[1][0] + quarterRangeWidthY},
+            {localRange[0][1] - quarterRangeWidthX, localRange[1][0] + quarterRangeWidthY},
+            {localRange[0][1] - quarterRangeWidthX, localRange[1][1] - quarterRangeWidthY}
         }
     };
 

@@ -98,7 +98,7 @@ void Renderer::draw() {
     // Prepare to draw
     glUseProgram(shaderProgramObject);
     glBindVertexArray(vertexArrayObject); // Remembers which buffers are bound already automatically
-    glDrawElements(GL_TRIANGLES, 24, GL_UNSIGNED_INT, 0);
+    glDrawElements(GL_TRIANGLES, indices.size(), GL_UNSIGNED_INT, 0);
     glBindVertexArray(0);
 }
 

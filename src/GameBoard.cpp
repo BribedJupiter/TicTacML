@@ -8,7 +8,8 @@ GameBoard::GameBoard(Renderer& renderer) : glRenderer(renderer) {
         row.fill(CLEAR);
     }
 
-    const auto vertPair = generateBoardVertices();
+    // const auto vertPair = generateBoardVertices();
+    const auto vertPair = generateXVertices(8);
     glRenderer.setVertices(vertPair);
 }
 
@@ -92,12 +93,106 @@ void GameBoard::drawBoard() {
     glRenderer.draw();
 }
 
-void GameBoard::placeCircle(const int cellIndex) {
-
+std::pair<std::vector<float>, std::vector<int>> GameBoard::generateCircleVertices(const int cellIndex) {
+    std::vector<float> verts;
+    std::vector<int> indices;
+    return std::pair{verts, indices};
 }
 
-void GameBoard::placeX(const int cellIndex) {
+std::pair<std::vector<float>, std::vector<int>> GameBoard::generateXVertices(const int cellIndex) {
+    // We imagine each cell has its own local coordinate system
+    // in the range [0, 1] for each axis. 
+    // The below array lists the central points for each X that
+    // will be connected. 
+    // std::array<std::array<float, 2>, 4> xPoints = {
+    //     {
+    //         {0.33f, 0.66f},
+    //         {0.33f, 0.33f},
+    //         {0.66f, 0.33f},
+    //         {0.66f, 0.66f}
+    //     }
+    // };
 
+    // Next, we translate these local points to global points depending
+    // which cell we're in. There are 3 possible ranges to which we 
+    // need to translate:
+    //  - 0: [-1.0f, -0.33f]
+    //  - 1: [-0.33f, 0.33f]
+    //  - 2: [0.33f, 1.0f]
+    // The cell grid is outlined as follows:
+    // 0, 1, 2
+    // 3, 4, 5
+    // 6, 7, 8
+    // So, 0, 3, 6 belong to 0, 
+    // 1, 4, 7 belong to 1, 
+    // and 2, 5, 8 belong to 2
+    std::array<std::array<float, 2>, 3> ranges = {
+      {
+        {-1.0f, -0.33f},
+        {-0.33f, 0.33f},
+        {0.33f, 1.0f}
+      }  
+    };
+    std::array<float, 2> localRange;
+    switch(cellIndex) {
+        case 0:
+        case 3:
+        case 6:
+            localRange = ranges[0];
+            break;
+        case 1:
+        case 4:
+        case 7:
+            localRange = ranges[1];
+            break;
+        case 2:
+        case 5:
+        case 8:
+        default:
+            localRange = ranges[2];
+            break;
+    }
+
+    // Now that we know the correct range, we figure out where the x points should be globally
+    const float quarterRangeWidth = (localRange[1] - localRange[0]) / 4.0f;
+    std::array<std::array<float, 2>, 4> xPoints = {
+        {
+            {localRange[0] + quarterRangeWidth, localRange[1] - quarterRangeWidth},
+            {localRange[0] + quarterRangeWidth, localRange[0] + quarterRangeWidth},
+            {localRange[1] - quarterRangeWidth, localRange[0] + quarterRangeWidth},
+            {localRange[1] - quarterRangeWidth, localRange[1] - quarterRangeWidth}
+        }
+    };
+
+
+    // Finally, we construct the resulting array of points and triangles
+    // by determining the corner points of each line from the central points
+    // using the TTT::lineWidth offset.
+    // We could do some fancy trig to make it look better, but for now we'll just 
+    // add / subtract half the lineWidth to each dimension from the point
+    float halfOffset = TTT::lineWidth; 
+    // We have 4 points for each line, each with 3 dimensions, so we need a flat array
+    // of length 12 for each line. Since we have two lines (0,2 and 1,3), we need an array
+    // of length 24. 
+    std::vector<float> rawXPoints = {
+        xPoints[0][0] + halfOffset, xPoints[0][1] + halfOffset, 0.0f, // xyz for point 0 (top left)
+        xPoints[0][0] - halfOffset, xPoints[0][1] - halfOffset, 0.0f, 
+        xPoints[2][0] + halfOffset, xPoints[2][1] + halfOffset, 0.0f, // xyz for point 2 (bottom right)
+        xPoints[2][0] - halfOffset, xPoints[2][1] - halfOffset, 0.0f,
+        xPoints[1][0] + halfOffset, xPoints[1][1] - halfOffset, 0.0f, // xyz for point 1 (bottom left)
+        xPoints[1][0] - halfOffset, xPoints[1][1] + halfOffset, 0.0f, 
+        xPoints[3][0] + halfOffset, xPoints[3][1] - halfOffset, 0.0f, // xyz for point 3 (top right)
+        xPoints[3][0] - halfOffset, xPoints[3][1] + halfOffset, 0.0f,
+    };
+    // Since we have 4 triangles, each consisting of 3 points, we will need an array of length 12.
+    std::vector<int> indices = {
+        0, 1, 2,
+        1, 2, 3,
+        4, 5, 6,
+        4, 6, 7
+    };
+
+    return std::pair{rawXPoints, indices};
 }
 
 void GameBoard::printGrid() {

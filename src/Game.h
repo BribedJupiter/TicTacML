@@ -20,11 +20,8 @@ class Renderer {
         // Called if a resize window event occurs
         void resize(const int width, const int height);
 
-        // Helper function to draw one of the lines on the board 
-        void drawLine();
-
-        // Helper function to draw one of the circles on the board
-        void drawCircle();
+        // Add vertices to the renderer to be drawn
+        void addVertices(const std::pair<std::vector<float>, std::vector<int>> vertPair);
 
         // Load a shader and return an empty string on failure
         // It will convert the text from the shader file into an
@@ -71,10 +68,10 @@ class GameBoard {
         void drawBoard();
 
         // Draw a circle centered in specific a cell
-        void placeCircle(const int cellIndex);
+        std::pair<std::vector<float>, std::vector<int>> generateCircleVertices(const int cellIndex);
 
         // Draw an X centered in specific a cell
-        void placeX(const int cellIndex);
+        std::pair<std::vector<float>, std::vector<int>> generateXVertices(const int cellIndex);
 
         // Debug print the grid to output
         void printGrid();

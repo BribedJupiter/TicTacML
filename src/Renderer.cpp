@@ -2,7 +2,6 @@
 #include <SFML/OpenGL.hpp>
 
 #include <exception>
-#include <filesystem>
 #include <iostream>
 #include <fstream>
 #include <iterator>
@@ -89,6 +88,7 @@ Renderer::Renderer() {
 
 void Renderer::draw() {
     if (!readyToRender) {
+        std::cout << "ERROR::DRAW::NOT_READY" << std::endl;
         return;
     }
 
@@ -136,12 +136,8 @@ void Renderer::resize(const int width, const int height) {
     glViewport(0, 0, width, height);
 }
 
-void Renderer::drawLine() {
+void Renderer::addVertices(const std::pair<std::vector<float>, std::vector<int>> vertPair) {
     
-}
-
-void Renderer::drawCircle() {
-
 }
 
 std::string Renderer::loadShader(const std::string filename) {

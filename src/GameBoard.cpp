@@ -9,7 +9,7 @@ GameBoard::GameBoard(Renderer& renderer) : glRenderer(renderer) {
     }
 
     // const auto vertPair = generateBoardVertices();
-    const auto vertPair = generateXVertices(8);
+    const auto vertPair = generateXVertices(3);
     glRenderer.setVertices(vertPair);
 }
 
@@ -20,7 +20,7 @@ std::pair<std::vector<float>, std::vector<int>> GameBoard::generateBoardVertices
     // of the screen. Each of these lines will contain 4 points.
     // So, at a minimum we need to generate 4 * 4 = 16 vertices.
     // None of these vertices will be shared. Each line will be TTT::lineWidth wide
-    float offset = static_cast<float>(TTT::lineWidth) / 100.0f;
+    float offset = TTT::lineWidth;
     std::vector<std::array<float, 3>> lineArrays;
     std::vector<int> indices = {
         0, 2, 3, // left horizontal triangle one - bl, tr, tl
@@ -188,7 +188,7 @@ std::pair<std::vector<float>, std::vector<int>> GameBoard::generateXVertices(con
     std::vector<int> indices = {
         0, 1, 2,
         1, 2, 3,
-        4, 5, 6,
+        4, 5, 7,
         4, 6, 7
     };
 

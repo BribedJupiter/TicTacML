@@ -14,6 +14,9 @@ class Renderer {
         // and then draw.
         void draw();
 
+        // Toggle wireframe mode
+        void toggleWireframe();
+
         // Set the vertices and indices to be drawn from an outside source
         void setVertices(const std::pair<std::vector<float>, std::vector<int>> vertPair);
 
@@ -64,6 +67,12 @@ class GameBoard {
         // in normalized device coordinates
         std::pair<std::vector<float>, std::vector<int>> generateBoardVertices();
 
+        // Place an X on the game board
+        void placeX(const int cellIndex);
+
+        // Place a Circle on the game board
+        void placeCircle(const int cellIndex);
+
         // Draw the game board outline
         void drawBoard();
 
@@ -91,18 +100,4 @@ class GameBoard {
 
         // A 2D array storing the current state of each tic-tac-toe cell on the grid 
         std::array<std::array<CellState, 3>, 3> grid;
-};
-
-class GameManager {
-    public:
-        GameManager();
-
-        void update();
-        void render();
-
-        ~GameManager();
-
-    private:
-        GameBoard board;
-        Renderer renderer;
 };

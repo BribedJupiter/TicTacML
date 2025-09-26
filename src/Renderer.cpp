@@ -102,6 +102,17 @@ void Renderer::draw() {
     glBindVertexArray(0);
 }
 
+void Renderer::toggleWireframe() {
+    // Default to true so that it turns on on the first call of this function
+    static bool showWires = true; 
+    if (showWires) {
+        glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+    } else {
+        glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+    }
+    showWires = !showWires;
+}
+
 void Renderer::setVertices(const std::pair<std::vector<float>, std::vector<int>> vertPair) {
     vertices = vertPair.first;
     indices = vertPair.second;
@@ -116,13 +127,13 @@ void Renderer::setVertices(const std::pair<std::vector<float>, std::vector<int>>
     unsigned int VBO;
     glGenBuffers(1, &VBO);
     glBindBuffer(GL_ARRAY_BUFFER, VBO);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(float) * vertices.size(), vertices.data(), GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(float) * vertices.size(), vertices.data(), GL_DYNAMIC_DRAW);
 
     // Store which indices OpenGL should use to draw
     unsigned int EBO;
     glGenBuffers(1, &EBO); 
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(int) * indices.size(), indices.data(), GL_STATIC_DRAW);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(int) * indices.size(), indices.data(), GL_DYNAMIC_DRAW);
 
     // Link the vertex attributes
     // Note that the previous VBO is still bound, so this will apply to that
@@ -137,7 +148,25 @@ void Renderer::resize(const int width, const int height) {
 }
 
 void Renderer::addVertices(const std::pair<std::vector<float>, std::vector<int>> vertPair) {
-    
+    // TODO: This whole flow could be optimized a lot
+    auto addVerts = vertPair.first;
+    auto addIndices = vertPair.second;
+    auto currentVerts = vertices;
+    auto currentIndices = indices;
+
+    // Update the new indices to account for vertex offsets and add to the indices list
+    constexpr int dimNum = 3; // There are 3 points per vertex currently.
+    static int offset = currentVerts.size() / dimNum;
+    for  (auto index : addIndices) {
+        currentIndices.push_back(index + offset);
+    }
+    offset += addVerts.size() / dimNum;
+
+    // Add the new vertices to current after updating index offset
+    currentVerts.insert(currentVerts.end(), addVerts.begin(), addVerts.end());
+
+    // Set the new vertices
+    setVertices(std::pair{currentVerts, currentIndices});
 }
 
 std::string Renderer::loadShader(const std::string filename) {

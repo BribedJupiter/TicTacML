@@ -1,5 +1,7 @@
 #include "glad/glad.h"
 #include <SFML/Window.hpp>
+#include <SFML/Window/Event.hpp>
+#include <SFML/Window/Keyboard.hpp>
 
 #include "Game.h"
 #include "constants.h"
@@ -57,7 +59,36 @@ int main() {
             {
                 glRenderer.resize(resized->size.x, resized->size.y);
             }
+            
+            if (const auto* key = event->getIf<sf::Event::KeyPressed>()) {
+                if (key->scancode == sf::Keyboard::Scancode::Escape) {
+                    running = false;
+                }
+
+                if (key->scancode == sf::Keyboard::Scancode::X) {
+                    // Place an X
+                    static int cellX = 0;
+                    if (cellX < 9) {
+                        board.placeX(cellX++);
+                    }
+                }
+
+                if (key->scancode == sf::Keyboard::Scancode::C) {
+                    // Place a circle
+                    static int cellC = 0;
+                    if (cellC < 9) {
+                        board.placeCircle(cellC++);
+                    }
+                }
+
+                 if (key->scancode == sf::Keyboard::Scancode::T) {
+                    // Toggle wireframe draw
+                    glRenderer.toggleWireframe();
+                }
+            }
         }
+
+
 
         // Draw the TicTacToe board on the screen
         board.drawBoard();

@@ -11,20 +11,20 @@ GameBoard::GameBoard(Renderer& renderer) : glRenderer(renderer) {
     auto vertPair = generateBoardVertices();
     // We already have 16 vertices in the array, so we need to update the indices 
     // of the Xs we draw next to account for this.
-    constexpr int dimNum = 3; // The number of dimensions in the position attribute
-    static int offset = vertPair.first.size() / dimNum; 
-    for (int i = 0; i < 9; i++) {
-        auto pair = generateCircleVertices(i);
-        for (auto vert : pair.first) {
-            vertPair.first.push_back(vert);
-        }
-        for (auto index : pair.second) {
-            vertPair.second.push_back(index + offset);
-        }
-        // Offset by the number of vertices in each drawn X
-        offset += pair.first.size() / dimNum;
-    }
-    // const auto circleVertPair = generateCircleVertices(0);
+    // constexpr int dimNum = 3; // The number of dimensions in the position attribute
+    // static int offset = vertPair.first.size() / dimNum; 
+    // for (int i = 0; i < 9; i++) {
+    //     auto pair = generateXVertices(i);
+    //     // auto pair = generateCircleVertices(i);
+    //     for (auto vert : pair.first) {
+    //         vertPair.first.push_back(vert);
+    //     }
+    //     for (auto index : pair.second) {
+    //         vertPair.second.push_back(index + offset);
+    //     }
+    //     // Offset by the number of vertices in each drawn X
+    //     offset += pair.first.size() / dimNum;
+    // }
     glRenderer.setVertices(vertPair);
 }
 
@@ -96,6 +96,16 @@ std::pair<std::vector<float>, std::vector<int>> GameBoard::generateBoardVertices
     }
 
     return std::pair{verts, indices};
+}
+
+void GameBoard::placeX(const int cellIndex) {
+    const auto xVertPair = generateXVertices(cellIndex);
+    glRenderer.addVertices(xVertPair);
+}
+
+void GameBoard::placeCircle(const int cellIndex) {
+    const auto circleVertPair = generateCircleVertices(cellIndex);
+    glRenderer.addVertices(circleVertPair);
 }
 
 void GameBoard::drawBoard() {

@@ -114,6 +114,7 @@ void Renderer::toggleWireframe() {
 }
 
 void Renderer::setVertices(const std::pair<std::vector<float>, std::vector<int>> vertPair) {
+    // TODO: We're recreating these buffers every time. Ideally we'd re-use them instead.
     vertices = vertPair.first;
     indices = vertPair.second;
 

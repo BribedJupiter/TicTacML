@@ -1,7 +1,12 @@
 #include "glad/glad.h"
+#include <SFML/Graphics/RenderWindow.hpp>
+#include <SFML/System/Vector2.hpp>
 #include <SFML/Window.hpp>
 #include <SFML/Window/Event.hpp>
 #include <SFML/Window/Keyboard.hpp>
+#include <SFML/Window/Mouse.hpp>
+
+#include <iostream>
 
 #include "Game.h"
 #include "constants.h"
@@ -22,7 +27,7 @@ int main() {
     contextSettings.sRgbCapable = true;
 
     // SFML Window Setup
-    sf::Window window(sf::VideoMode({TTT::screenWidth, TTT::screenHeight}), "Obelisk", sf::Style::Default, sf::State::Windowed, contextSettings);
+    sf::RenderWindow window(sf::VideoMode({TTT::screenWidth, TTT::screenHeight}), "Obelisk", sf::Style::Default, sf::State::Windowed, contextSettings);
     window.setFramerateLimit(144);
     window.setVerticalSyncEnabled(true);
     if (!window.setActive(true)) {
@@ -51,6 +56,7 @@ int main() {
     while (running) {
         while (const std::optional event = window.pollEvent())
         {
+            // TODO: Change these to callbacks
             if (event->is<sf::Event::Closed>())
             {
                 running = false;
@@ -58,6 +64,13 @@ int main() {
             else if (const auto* resized = event->getIf<sf::Event::Resized>())
             {
                 glRenderer.resize(resized->size.x, resized->size.y);
+            }
+
+            if (const auto* mouse = event->getIf<sf::Event::MouseButtonPressed>()) {
+                if (mouse->button == sf::Mouse::Button::Left) {
+                    sf::Vector2f mousePosWindow = window.mapPixelToCoords(sf::Mouse::getPosition(window));
+                    std::cout << "Clicked: (" << mousePosWindow.x << "," << mousePosWindow.y << ")" << std::endl;
+                }
             }
             
             if (const auto* key = event->getIf<sf::Event::KeyPressed>()) {
@@ -81,14 +94,12 @@ int main() {
                     }
                 }
 
-                 if (key->scancode == sf::Keyboard::Scancode::T) {
+                if (key->scancode == sf::Keyboard::Scancode::T) {
                     // Toggle wireframe draw
                     glRenderer.toggleWireframe();
                 }
             }
         }
-
-
 
         // Draw the TicTacToe board on the screen
         board.drawBoard();

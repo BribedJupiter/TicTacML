@@ -123,6 +123,8 @@ int main() {
                     sf::Vector2f mousePosWindow = window.mapPixelToCoords(sf::Mouse::getPosition(window));
                     std::cout << "Clicked: (" << mousePosWindow.x << "," << mousePosWindow.y << ")" << std::endl;
                     handleClick(mousePosWindow, window, board);
+                    // Check if either side has won
+                    std::cout << "Winner?: " << board.checkWin() << std::endl;
                 }
             }
             

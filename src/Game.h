@@ -86,6 +86,12 @@ class GameBoard {
         // 0 = X, 1 = Circle
         int getTurn();
 
+        // Check if the game has been won or has ended in a draw
+        // Returns the integer corresponding to CellState for a win,
+        // returns the integer value of CellState.CLEAR for no win,
+        // returns -1 on draw.
+        int checkWin();
+
         ~GameBoard();
     private:
         enum CellState {

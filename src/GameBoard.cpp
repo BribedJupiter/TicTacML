@@ -4,6 +4,7 @@
 #include "constants.h"
 
 GameBoard::GameBoard(Renderer& renderer) : glRenderer(renderer) {
+    // Default all cells to CLEAR
     for (auto& row : grid) {
         row.fill(CLEAR);
     }
@@ -305,6 +306,48 @@ void GameBoard::setNextTurn() {
 
 int GameBoard::getTurn() {
     return turn;
+}
+
+int GameBoard::checkWin() {
+    // TODO: There's probably a better way to write this function
+
+    // A win occurs if there are 3 in a row of either shape.
+    // A draw occurs if there is no win and every cell is full.
+
+    // Check for a win along each row
+    for (auto row : grid) {
+        if (row[0] == row[1] && row[1] == row[2] && row[0] != CLEAR) {
+            return row[0];
+        }
+    }
+
+    // Check for a win along each column
+    for (int i = 0; i < 3; i++) {
+        if (grid[0][i] == grid[1][i] && grid[1][i] == grid[2][i] && grid[0][i] != CLEAR) {
+            return grid[0][i];
+        }
+    }
+
+    // Check for a win along each diagonal
+    if (grid[0][0] == grid[1][1] && grid[1][1] == grid[2][2] && grid[1][1] != CLEAR) {
+        return grid[1][1];
+    }
+    if (grid[0][2] == grid[1][1] && grid[1][1] == grid[2][0] && grid[1][1] != CLEAR) {
+        return grid[1][1];
+    }
+
+    // If we reach this point, there is no win.
+    // Check if every cell is full (i.e. not CLEAR)
+    for (auto row : grid) {
+        for (auto elem : row) {
+            if (elem == CLEAR) {
+                return CLEAR;
+            }
+        }
+    }
+
+    // If we reach this state, neither side has won and every cell is full.
+    return -1;
 }
 
 GameBoard::~GameBoard() {

@@ -51,6 +51,7 @@ void handleClick(const sf::Vector2f mousePosWindow, const sf::RenderWindow& wind
     }
     std::cout << "Clicked cell: " << cell << std::endl;
     board.placeCircle(cell);
+    board.printGrid();
     return;
 }
 

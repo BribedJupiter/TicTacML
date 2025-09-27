@@ -99,11 +99,17 @@ std::pair<std::vector<float>, std::vector<int>> GameBoard::generateBoardVertices
 }
 
 void GameBoard::placeX(const int cellIndex) {
+    int col = cellIndex % 3;
+    int row = cellIndex / 3;
+    grid[row][col] = X;
     const auto xVertPair = generateXVertices(cellIndex);
     glRenderer.addVertices(xVertPair);
 }
 
 void GameBoard::placeCircle(const int cellIndex) {
+    int col = cellIndex % 3;
+    int row = cellIndex / 3;
+    grid[row][col] = CIRCLE;
     const auto circleVertPair = generateCircleVertices(cellIndex);
     glRenderer.addVertices(circleVertPair);
 }
@@ -174,6 +180,8 @@ std::array<std::array<float, 2>, 2> GameBoard::getCoordinateRange(const int cell
 }
 
 std::pair<std::vector<float>, std::vector<int>> GameBoard::generateCircleVertices(const int cellIndex) {
+    // TODO: Draw an actual circle, not a square.
+
     // We imagine each cell has its own local coordinate system
     // in the range [0, 1] for each axis. 
     // The below array lists the central points for each X that

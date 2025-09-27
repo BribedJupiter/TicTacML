@@ -67,6 +67,12 @@ void handleClick(const sf::Vector2f mousePosWindow, const sf::RenderWindow& wind
         cell += 6;
     }
 
+    // Check to make sure we don't place a shape an an occupied cell 
+    if (!board.canPlace(cell)) {
+        std::cout << "Cannot place on already placed cell." << std::endl;
+        return;
+    }
+
     // Draw a shape depending on the current turn
     if (board.getTurn()) {
         board.placeCircle(cell);

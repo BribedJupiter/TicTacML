@@ -83,6 +83,11 @@ class GameBoard {
         // Place a Circle on the game board
         void placeCircle(const int cellIndex);
 
+        // Returns true if a cell is not occupied
+        bool canPlace(const int cellIndex) {
+            return grid[cellIndex / 3][cellIndex % 3] == CLEAR;
+        }
+
         // Draw the game board outline
         void drawBoard();
 

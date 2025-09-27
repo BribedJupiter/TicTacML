@@ -158,20 +158,9 @@ int main() {
                     running = false;
                 }
 
-                if (key->scancode == sf::Keyboard::Scancode::X) {
-                    // Place an X
-                    static int cellX = 0;
-                    if (cellX < 9) {
-                        board.placeX(cellX++);
-                    }
-                }
-
-                if (key->scancode == sf::Keyboard::Scancode::C) {
-                    // Place a circle
-                    static int cellC = 0;
-                    if (cellC < 9) {
-                        board.placeCircle(cellC++);
-                    }
+                if (key->scancode == sf::Keyboard::Scancode::R) {
+                    // Reset the game to the start
+                    board.reset();
                 }
 
                 if (key->scancode == sf::Keyboard::Scancode::T) {

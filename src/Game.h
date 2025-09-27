@@ -35,6 +35,9 @@ class Renderer {
         // otherwise returns false
         bool initFailed() {return initFailure;}
 
+        // Reset to the initial state
+        void reset();
+
         // Clean up and shut down OpenGL and its context
         ~Renderer();
     
@@ -49,6 +52,13 @@ class Renderer {
 
         // To ensure that vertices have been set first
         bool readyToRender = false;
+
+        // The number of dimensions per vertex. Currently there are 3
+        const int dimNum = 3; 
+
+        // The number of vertices to offset when adding new indices
+        // to indices
+        int indexOffset = 0;
 };
 
 class GameBoard {
@@ -98,6 +108,9 @@ class GameBoard {
         // Check if the game is still playing
         bool isOver() {return gameState != PLAYING && gameState != STARTING;}
 
+        // Reset to the initial state
+        void reset();
+
         ~GameBoard();
     private:
         enum CellState {
@@ -122,6 +135,9 @@ class GameBoard {
 
         // Reference to our OpenGL rendering object
         Renderer& glRenderer;
+        
+        // Reset the grid
+        void clearGrid();
 
         // Draw a circle centered in specific a cell
         std::pair<std::vector<float>, std::vector<int>> generateCircleVertices(const int cellIndex);

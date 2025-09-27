@@ -156,12 +156,11 @@ void Renderer::addVertices(const std::pair<std::vector<float>, std::vector<int>>
     auto currentIndices = indices;
 
     // Update the new indices to account for vertex offsets and add to the indices list
-    constexpr int dimNum = 3; // There are 3 points per vertex currently.
-    static int offset = currentVerts.size() / dimNum;
+    indexOffset = currentVerts.size() / dimNum;
     for  (auto index : addIndices) {
-        currentIndices.push_back(index + offset);
+        currentIndices.push_back(index + indexOffset);
     }
-    offset += addVerts.size() / dimNum;
+    indexOffset += addVerts.size() / dimNum;
 
     // Add the new vertices to current after updating index offset
     currentVerts.insert(currentVerts.end(), addVerts.begin(), addVerts.end());
@@ -183,6 +182,13 @@ std::string Renderer::loadShader(const std::string filename) {
     std::string text((std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());
     file.close();
     return text;
+}
+
+void Renderer::reset() {
+    // TODO: This doesn't actually clean up any OpenGL memory!!!
+    indexOffset = 0;
+    vertices.clear();
+    indices.clear();
 }
 
 Renderer::~Renderer() {

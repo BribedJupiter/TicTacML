@@ -4,11 +4,15 @@
 #include "Game.h"
 #include "constants.h"
 
-GameBoard::GameBoard(Renderer& renderer) : glRenderer(renderer) {
-    // Default all cells to CLEAR
+void GameBoard::clearGrid() {
     for (auto& row : grid) {
         row.fill(CLEAR);
     }
+}
+
+GameBoard::GameBoard(Renderer& renderer) : glRenderer(renderer) {
+    // Default all cells to CLEAR
+    clearGrid();
 
     auto vertPair = generateBoardVertices();
     glRenderer.setVertices(vertPair);
@@ -447,6 +451,7 @@ void GameBoard::endGame(const std::pair<int, std::array<int, 3>> winData) {
             break;
         case -1:
             gameState = DRAW;
+            std::cout << "DRAW" << std::endl;
             return;
         case CLEAR:
         default:
@@ -458,6 +463,14 @@ void GameBoard::endGame(const std::pair<int, std::array<int, 3>> winData) {
     // Draw the bar over the winning row / column / diagonal
     const auto winVertPair = generateWinVertices(winVector);
     glRenderer.addVertices(winVertPair);
+}
+
+void GameBoard::reset() {
+    turn = 0;
+    gameState = STARTING;
+    clearGrid();
+    glRenderer.reset();
+    glRenderer.setVertices(generateBoardVertices());
 }
 
 GameBoard::~GameBoard() {

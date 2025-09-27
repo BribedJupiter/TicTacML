@@ -1,4 +1,5 @@
 #include <iostream>
+#include <vector>
 
 #include "Game.h"
 #include "constants.h"
@@ -310,8 +311,25 @@ std::pair<std::vector<float>, std::vector<int>> generateColVertices(const int co
 }
 
 std::pair<std::vector<float>, std::vector<int>> generateDiagonalVertices(const int diagonal) {
-    std::vector<float> vertices;
-    std::vector<int> indices;
+    // In this case, we have two possible lines:
+    // top left to bottom right (cell 0 to cell 8)
+    // or
+    // top right to bottom left (cell 2 to cell 6)
+    float modifier = static_cast<float>(diagonal);
+    float offset = TTT::lineWidth * 1.5f;
+
+    std::vector<float> vertices = {
+        0.9f * modifier  - offset * modifier, 0.9f + offset, 0.0f,
+        0.9f * modifier + offset * modifier, 0.9f - offset, 0.0f,
+        -0.9f * modifier - offset * modifier, -0.9f + offset, 0.0f,
+        -0.9f * modifier + offset * modifier, -0.9f - offset, 0.0f,
+    };
+    
+    std::vector<int> indices = {
+        0, 1, 2,
+        3, 1, 2
+    };
+
     return std::pair{vertices, indices};
 }
 
@@ -323,9 +341,12 @@ std::pair<std::vector<float>, std::vector<int>> GameBoard::generateWinVertices(c
     } else if (winVector[1] >= 0) {
         const auto pair = generateColVertices(winVector[1]);
         return pair;
-    } else {
+    } else if (winVector[2] != 0){
         const auto pair = generateDiagonalVertices(winVector[2]);
         return pair;
+    } else {
+        std::cout << "ERROR::WIN::INVALID_VERTICES" << std::endl;
+        return std::pair{std::vector<float>(), std::vector<int>()};
     }
 }
 
@@ -391,7 +412,7 @@ std::pair<int, std::array<int, 3>> GameBoard::checkWin() {
 
     // Check for a win along each diagonal
     if (grid[0][0] == grid[1][1] && grid[1][1] == grid[2][2] && grid[1][1] != CLEAR) {
-        winVector[2] = 0;
+        winVector[2] = -1;
         return std::pair{grid[1][1], winVector};
     }
     if (grid[0][2] == grid[1][1] && grid[1][1] == grid[2][0] && grid[1][1] != CLEAR) {

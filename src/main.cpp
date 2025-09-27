@@ -11,6 +11,18 @@
 #include "Game.h"
 #include "constants.h"
 
+// Khronos debug function (see https://www.khronos.org/opengl/wiki/OpenGL_Error)
+void GLAPIENTRY MessageCallback( GLenum source,
+                 GLenum type,
+                 GLuint id,
+                 GLenum severity,
+                 GLsizei length,
+                 const GLchar* message,
+                 const void* userParam )
+{
+    std::cerr << "GL CALLBACK: " << message << std::endl;
+}
+
 // Translate a mouse click into placing an element on the board
 void handleClick(const sf::Vector2f mousePosWindow, const sf::RenderWindow& window, GameBoard& board) {
     // If the game is over, do nothing.
@@ -77,8 +89,8 @@ int main() {
     contextSettings.depthBits = 24;
     contextSettings.stencilBits = 8;
     contextSettings.antiAliasingLevel = 4;
-    contextSettings.majorVersion = 3;
-    contextSettings.minorVersion = 0;
+    contextSettings.majorVersion = 4;
+    contextSettings.minorVersion = 3;
     contextSettings.attributeFlags = contextSettings.Default;
     contextSettings.sRgbCapable = true;
 
@@ -103,6 +115,10 @@ int main() {
 
     // Setup the game
     GameBoard board = GameBoard(glRenderer);
+
+    // Enable debug output (see https://www.khronos.org/opengl/wiki/OpenGL_Error)
+    glEnable( GL_DEBUG_OUTPUT );
+    glDebugMessageCallback( MessageCallback, 0 );
     
     //*********************************************************
     // Begin the main game loop

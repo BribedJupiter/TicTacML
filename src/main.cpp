@@ -11,6 +11,49 @@
 #include "Game.h"
 #include "constants.h"
 
+// Translate a mouse click into placing an element on the board
+void handleClick(const sf::Vector2f mousePosWindow, const sf::RenderWindow& window, GameBoard& board) {
+    // Determine the widths and heights of the colums and rows
+    sf::Vector2u windowSize = window.getSize();
+    float columnWidth = static_cast<float>(windowSize.x) / 3.0f;
+    float rowHeight = static_cast<float>(windowSize.y) / 3.0f; 
+
+    // We know that board is divided into three rows and three columns. Thus
+    // we have 3 possible ranges each for our point to be inside of
+    // Check if the position is invalid
+    if (mousePosWindow.x < 0 || mousePosWindow.x > windowSize.x || mousePosWindow.y < 0 || mousePosWindow.y > windowSize.y) {
+        std::cout << "ERROR::WINDOW::MOUSE_BEYOND_BOUNDS" << std::endl;
+        return;
+    }
+
+    // TODO: There's likely a better algorithm to do this
+    // Determine the column
+    int cell = 0;
+    if (mousePosWindow.x <= columnWidth) {
+        // first column - do nothing 
+    } else if (mousePosWindow.x <= columnWidth * 2.0f) {
+        // second column
+        cell = 1;
+    } else {
+        // third column
+        cell = 2;
+    }
+
+    // Determine the row
+    if (mousePosWindow.y <= rowHeight) {
+        // first row - do nothing
+    } else if (mousePosWindow.y <= rowHeight * 2.0f) {
+        // second column - move to the second row
+        cell += 3;
+    } else {
+        // third column - move to the third row
+        cell += 6;
+    }
+    std::cout << "Clicked cell: " << cell << std::endl;
+    board.placeCircle(cell);
+    return;
+}
+
 int main() {
     //*********************************************************
     // Create the SFML window, OpenGL context, and setup GLAD
@@ -68,8 +111,10 @@ int main() {
 
             if (const auto* mouse = event->getIf<sf::Event::MouseButtonPressed>()) {
                 if (mouse->button == sf::Mouse::Button::Left) {
+                    // Get the mouse position in window coordinates and hand off to handler 
                     sf::Vector2f mousePosWindow = window.mapPixelToCoords(sf::Mouse::getPosition(window));
                     std::cout << "Clicked: (" << mousePosWindow.x << "," << mousePosWindow.y << ")" << std::endl;
+                    handleClick(mousePosWindow, window, board);
                 }
             }
             

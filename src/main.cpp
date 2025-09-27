@@ -26,7 +26,7 @@ void handleClick(const sf::Vector2f mousePosWindow, const sf::RenderWindow& wind
         return;
     }
 
-    // TODO: There's likely a better algorithm to do this
+    // TODO: There's likely a better algorithm to do this. Can I remove any of these if statements?
     // Determine the column
     int cell = 0;
     if (mousePosWindow.x <= columnWidth) {
@@ -49,10 +49,17 @@ void handleClick(const sf::Vector2f mousePosWindow, const sf::RenderWindow& wind
         // third column - move to the third row
         cell += 6;
     }
+
+    // Draw a shape depending on the current turn
+    if (board.getTurn()) {
+        board.placeCircle(cell);
+    } else {
+        board.placeX(cell);
+    }
+
+    // Some debug output
     std::cout << "Clicked cell: " << cell << std::endl;
-    board.placeCircle(cell);
     board.printGrid();
-    return;
 }
 
 int main() {

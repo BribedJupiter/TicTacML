@@ -79,6 +79,13 @@ class GameBoard {
         // Debug print the grid to output
         void printGrid();
 
+        // Switch to the next player
+        void setNextTurn();
+
+        // Get who's turn it is
+        // 0 = X, 1 = Circle
+        int getTurn();
+
         ~GameBoard();
     private:
         enum CellState {
@@ -87,6 +94,10 @@ class GameBoard {
             X = 2
         };
 
+        // Will either be 1 or 0
+        unsigned int turn = 0;
+
+        // Reference to our OpenGL rendering object
         Renderer& glRenderer;
 
         // Draw a circle centered in specific a cell

@@ -104,6 +104,7 @@ void GameBoard::placeX(const int cellIndex) {
     grid[row][col] = X;
     const auto xVertPair = generateXVertices(cellIndex);
     glRenderer.addVertices(xVertPair);
+    setNextTurn();
 }
 
 void GameBoard::placeCircle(const int cellIndex) {
@@ -112,6 +113,7 @@ void GameBoard::placeCircle(const int cellIndex) {
     grid[row][col] = CIRCLE;
     const auto circleVertPair = generateCircleVertices(cellIndex);
     glRenderer.addVertices(circleVertPair);
+    setNextTurn();
 }
 
 void GameBoard::drawBoard() {
@@ -295,6 +297,14 @@ void GameBoard::printGrid() {
         out += "]";
         std::cout << out << std::endl;
     }
+}
+
+void GameBoard::setNextTurn() {
+    turn = (turn + 1) % 2;
+}
+
+int GameBoard::getTurn() {
+    return turn;
 }
 
 GameBoard::~GameBoard() {

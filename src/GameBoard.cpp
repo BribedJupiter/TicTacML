@@ -10,22 +10,6 @@ GameBoard::GameBoard(Renderer& renderer) : glRenderer(renderer) {
     }
 
     auto vertPair = generateBoardVertices();
-    // We already have 16 vertices in the array, so we need to update the indices 
-    // of the Xs we draw next to account for this.
-    // constexpr int dimNum = 3; // The number of dimensions in the position attribute
-    // static int offset = vertPair.first.size() / dimNum; 
-    // for (int i = 0; i < 9; i++) {
-    //     auto pair = generateXVertices(i);
-    //     // auto pair = generateCircleVertices(i);
-    //     for (auto vert : pair.first) {
-    //         vertPair.first.push_back(vert);
-    //     }
-    //     for (auto index : pair.second) {
-    //         vertPair.second.push_back(index + offset);
-    //     }
-    //     // Offset by the number of vertices in each drawn X
-    //     offset += pair.first.size() / dimNum;
-    // }
     glRenderer.setVertices(vertPair);
 }
 
@@ -277,6 +261,74 @@ std::pair<std::vector<float>, std::vector<int>> GameBoard::generateXVertices(con
     return std::pair{rawXPoints, indices};
 }
 
+std::pair<std::vector<float>, std::vector<int>> generateRowVertices(const int row) {
+    // In every case, the X points will be the same. 
+    // We will have 4 points each with 3 dimensions
+    // (1 - x) / 2 = y
+    // Row 0 --> 1 - 0 =  1 / 1.51 =  0.66
+    // Row 1 --> 1 - 1 =  0 / 1.51 =  0
+    // Row 2 --> 1 - 2 = -1 / 1.51 = -0.66
+    float yHeight = (1 - static_cast<float>(row)) / 1.51;
+    float offset = TTT::lineWidth * 2.0f;
+    std::vector<float> vertices = {
+        -0.9f, yHeight + offset, 0.0f,
+        -0.9f, yHeight - offset, 0.0f,
+        0.9f, yHeight + offset, 0.0f,
+        0.9f, yHeight - offset, 0.0f,
+    };
+    
+    std::vector<int> indices = {
+        0, 1, 2,
+        3, 1, 2
+    };
+
+    return std::pair{vertices, indices};
+}
+
+std::pair<std::vector<float>, std::vector<int>> generateColVertices(const int col) {
+    // In every case, the Y points will be the same. 
+    // We will have 4 points each with 3 dimensions
+    // (1 - x) / 2 = y
+    // Col 0 --> 1 - 0 =  1 / -1.51 =  -0.66
+    // Col 1 --> 1 - 1 =  0 / -1.51 =  0
+    // Col 2 --> 1 - 2 = -1 / -1.51 = 0.66
+    float xWidth = (1 - static_cast<float>(col)) / -1.51;
+    float offset = TTT::lineWidth * 2.0f;
+    std::vector<float> vertices = {
+        xWidth + offset, -0.9f, 0.0f,
+        xWidth - offset, -0.9f, 0.0f,
+        xWidth + offset, 0.9f, 0.0f,
+        xWidth - offset, 0.9f, 0.0f,
+    };
+    
+    std::vector<int> indices = {
+        0, 1, 2,
+        3, 1, 2
+    };
+
+    return std::pair{vertices, indices};
+}
+
+std::pair<std::vector<float>, std::vector<int>> generateDiagonalVertices(const int diagonal) {
+    std::vector<float> vertices;
+    std::vector<int> indices;
+    return std::pair{vertices, indices};
+}
+
+std::pair<std::vector<float>, std::vector<int>> GameBoard::generateWinVertices(const std::array<int, 3> winVector) {
+    // We have 3 cases: row, column, and diagonal
+    if (winVector[0] >= 0) {
+        const auto pair = generateRowVertices(winVector[0]);
+        return pair;
+    } else if (winVector[1] >= 0) {
+        const auto pair = generateColVertices(winVector[1]);
+        return pair;
+    } else {
+        const auto pair = generateDiagonalVertices(winVector[2]);
+        return pair;
+    }
+}
+
 void GameBoard::printGrid() {
     for (auto& row : grid) {
         std::string out = "[";
@@ -308,32 +360,43 @@ int GameBoard::getTurn() {
     return turn;
 }
 
-int GameBoard::checkWin() {
+std::pair<int, std::array<int, 3>> GameBoard::checkWin() {
     // TODO: There's probably a better way to write this function
 
     // A win occurs if there are 3 in a row of either shape.
     // A draw occurs if there is no win and every cell is full.
 
+    // Vector will store if we won by row, col, or diagonal and which one
+    std::array<int, 3> winVector = {-1, -1, -1};
+
     // Check for a win along each row
+    int winningRow = 0;
     for (auto row : grid) {
         if (row[0] == row[1] && row[1] == row[2] && row[0] != CLEAR) {
-            return row[0];
+            winVector[0] = winningRow;
+            return std::pair{row[0], winVector};
         }
+        winningRow++;
     }
 
     // Check for a win along each column
+    int winningCol = 0;
     for (int i = 0; i < 3; i++) {
         if (grid[0][i] == grid[1][i] && grid[1][i] == grid[2][i] && grid[0][i] != CLEAR) {
-            return grid[0][i];
+            winVector[1] = winningCol;
+            return std::pair{grid[0][i], winVector};
         }
+        winningCol++;
     }
 
     // Check for a win along each diagonal
     if (grid[0][0] == grid[1][1] && grid[1][1] == grid[2][2] && grid[1][1] != CLEAR) {
-        return grid[1][1];
+        winVector[2] = 0;
+        return std::pair{grid[1][1], winVector};
     }
     if (grid[0][2] == grid[1][1] && grid[1][1] == grid[2][0] && grid[1][1] != CLEAR) {
-        return grid[1][1];
+        winVector[2] = 1;
+        return std::pair{grid[1][1], winVector};
     }
 
     // If we reach this point, there is no win.
@@ -341,13 +404,39 @@ int GameBoard::checkWin() {
     for (auto row : grid) {
         for (auto elem : row) {
             if (elem == CLEAR) {
-                return CLEAR;
+                return std::pair{CLEAR, winVector};
             }
         }
     }
 
     // If we reach this state, neither side has won and every cell is full.
-    return -1;
+    return std::pair{-1, winVector};
+}
+
+void GameBoard::endGame(const std::pair<int, std::array<int, 3>> winData) {
+    // Update the game state
+    const int endStatus = static_cast<CellState>(winData.first);
+    const auto winVector = winData.second;
+    switch(endStatus) {
+        case CIRCLE:
+            gameState = C_WIN;
+            break;
+        case X:
+            gameState = X_WIN;
+            break;
+        case -1:
+            gameState = DRAW;
+            return;
+        case CLEAR:
+        default:
+            std::cout << "ERROR::END::INVALID_END_CONDITION" << std::endl;
+            return;
+    };
+    std::cout << "Win Status: " << gameState << std::endl;
+
+    // Draw the bar over the winning row / column / diagonal
+    const auto winVertPair = generateWinVertices(winVector);
+    glRenderer.addVertices(winVertPair);
 }
 
 GameBoard::~GameBoard() {

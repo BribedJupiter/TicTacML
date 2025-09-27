@@ -13,6 +13,11 @@
 
 // Translate a mouse click into placing an element on the board
 void handleClick(const sf::Vector2f mousePosWindow, const sf::RenderWindow& window, GameBoard& board) {
+    // If the game is over, do nothing.
+    if (board.isOver()) {
+        return;
+    }
+
     // Determine the widths and heights of the colums and rows
     sf::Vector2u windowSize = window.getSize();
     float columnWidth = static_cast<float>(windowSize.x) / 3.0f;
@@ -124,7 +129,11 @@ int main() {
                     std::cout << "Clicked: (" << mousePosWindow.x << "," << mousePosWindow.y << ")" << std::endl;
                     handleClick(mousePosWindow, window, board);
                     // Check if either side has won
-                    std::cout << "Winner?: " << board.checkWin() << std::endl;
+                    const auto winData = board.checkWin();
+                    if (winData.first != 0 && !board.isOver()) {
+                        // If we detect a game ending condition but haven't yet updated the board, end the game
+                        board.endGame(winData);
+                    }
                 }
             }
             

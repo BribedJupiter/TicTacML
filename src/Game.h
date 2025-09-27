@@ -90,7 +90,13 @@ class GameBoard {
         // Returns the integer corresponding to CellState for a win,
         // returns the integer value of CellState.CLEAR for no win,
         // returns -1 on draw.
-        int checkWin();
+        std::pair<int, std::array<int, 3>> checkWin();
+
+        // Display the win screen, end the game
+        void endGame(const std::pair<int, std::array<int, 3>>);
+
+        // Check if the game is still playing
+        bool isOver() {return gameState != PLAYING && gameState != STARTING;}
 
         ~GameBoard();
     private:
@@ -100,8 +106,19 @@ class GameBoard {
             X = 2
         };
 
+        enum GameState {
+            STARTING = 0,
+            PLAYING = 1,
+            X_WIN = 2,
+            C_WIN = 3,
+            DRAW = 4
+        };
+
         // Will either be 1 or 0
         unsigned int turn = 0;
+
+        // store the current GameState
+        GameState gameState = STARTING;
 
         // Reference to our OpenGL rendering object
         Renderer& glRenderer;
@@ -111,6 +128,9 @@ class GameBoard {
 
         // Draw an X centered in specific a cell
         std::pair<std::vector<float>, std::vector<int>> generateXVertices(const int cellIndex);
+
+        // Draw a line in across the winning set of 3 elements
+        std::pair<std::vector<float>, std::vector<int>> generateWinVertices(const std::array<int, 3> winVector);
 
         // Get the proper coordinate range for each cell
         std::array<std::array<float, 2>, 2> getCoordinateRange(const int cellIndex);

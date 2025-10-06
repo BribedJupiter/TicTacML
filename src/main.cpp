@@ -101,7 +101,7 @@ int main() {
     contextSettings.sRgbCapable = true;
 
     // SFML Window Setup
-    sf::RenderWindow window(sf::VideoMode({TTT::screenWidth, TTT::screenHeight}), "Obelisk", sf::Style::Default, sf::State::Windowed, contextSettings);
+    sf::RenderWindow window(sf::VideoMode({TTT::screenWidth, TTT::screenHeight}), "TicTacML", sf::Style::Default, sf::State::Windowed, contextSettings);
     window.setFramerateLimit(144);
     window.setVerticalSyncEnabled(true);
     if (!window.setActive(true)) {

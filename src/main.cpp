@@ -6,6 +6,7 @@
 #include <SFML/Window/Keyboard.hpp>
 #include <SFML/Window/Mouse.hpp>
 
+#include <chrono>
 #include <iostream>
 #include <stdio.h>
 #include <stdlib.h>
@@ -104,21 +105,6 @@ int handleClick(const sf::Vector2f mousePosWindow, const sf::RenderWindow& windo
     return cell;
 }
 
-void sendPipeInput(FILE* proc, std::string text) {
-    if (proc == NULL) return;
-    fputs(text.c_str(), proc);
-    fflush(proc);
-}
-
-// See here: https://learn.microsoft.com/en-us/cpp/c-runtime-library/reference/popen-wpopen
-void checkPipeOutput(FILE* proc) {
-    if (proc == NULL) return;
-    char buf[128];
-    while (fgets(buf, sizeof(buf), proc) != NULL) {
-        std::cout << buf << std::flush;
-    }
-}
-
 void writeToPython(HANDLE pyStdInWr, std::string message) {
     // See https://learn.microsoft.com/en-us/windows/win32/procthread/creating-a-child-process-with-redirected-input-and-output
 
@@ -137,7 +123,7 @@ void writeToPython(HANDLE pyStdInWr, std::string message) {
     }
 
     // Otherwise
-    std::cout << std::flush << "Wrote " << bytesWritten << " bytes to Python" << std::endl; 
+    std::cout << std::flush << "Wrote " << bytesWritten << " bytes to Python saying " << message << std::endl; 
 }
 
 void readFromPython(HANDLE pyStdOutRd) {
@@ -161,10 +147,17 @@ void readFromPython(HANDLE pyStdOutRd) {
     char buf[512];
     success = ReadFile(pyStdOutRd, buf, sizeof(buf), &bytesRead, NULL);
     if (success && bytesRead > 0) {
-        DWORD bytesWritten;
-        WriteFile(GetStdHandle(STD_OUTPUT_HANDLE), buf, bytesRead, &bytesWritten, NULL);
-    }
+        // Form a string with the result and output it
+        std::string result(buf, bytesRead);
+        std::cout << result << std::endl;
 
+        // Process data from Python
+        // std::string::find will search for a string and then return the index of the occurrence
+        size_t cmd = result.find("READY");
+        if (cmd != std::string::npos) {
+            std::cout << "Python ready..." << std::endl;
+        }
+    }
     std::cout << std::flush << "Read " << bytesRead << " bytes from Python" << std::endl;
 }
 
@@ -225,11 +218,11 @@ void runModel() {
 
     while(!killThread) {
         readFromPython(pyStd_OUT_RD);
-        // writeToPython(pyStd_IN_WR, "Hello Python");
     }
 
     // Shutdown
     writeToPython(pyStd_IN_WR, "shutdown"); // tell python to shutdown
+    std::this_thread::sleep_for(std::chrono::milliseconds(500)); // Give python time to shutdown
     readFromPython(pyStd_OUT_RD); // Read final Python output
     int modelReturn = WaitForSingleObject(pi.hProcess, INFINITE);
     CloseHandle(pi.hProcess);

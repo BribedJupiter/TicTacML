@@ -13,7 +13,7 @@ import numpy as np
 
 # Read our CSV data
 csv_filepath = sys.argv[1]
-print("CSV PATH: ", csv_filepath)
+print("[PYTHON] CSV PATH: ", csv_filepath)
 data = read_csv(csv_filepath)
 
 # Prep our data arrays (a lot of this follows what we've been doing in the programming assignments)
@@ -47,7 +47,10 @@ predicted = np.concatenate([prediction1, prediction2])
 # Output confusion matrix, accuracy score
 print("[PYTHON] Confusion matrix:\n", confusion_matrix(actual, predicted))
 print("[PYTHON] Accuracy:", accuracy_score(actual, predicted))
+
+print("[PYTHON] READY")
 sys.stdout.flush()
+
 
 #############
 ### TEST ###

@@ -10,26 +10,11 @@
 #include "csvHandler.h"
 #include "constants.h"
 
-void CSVHandler::exportGameResults() {
-
-}
-
-void CSVHandler::exportMove(const int move) {
-    std::string outPath = std::filesystem::path(CSV_PATH).string() + "/out_log.csv";
-
-    std::ofstream file;
-    file.exceptions(file.exceptions() | std::ios::failbit);
-    try {
-        file.open(outPath.c_str(), std::ios::app);
-    } catch (std::exception e) {
-        std::cerr << "Unable to open CSV log file: " << outPath << " --> " << e.what() << std::endl;
-        return;
-    }
-    
+std::string CSVHandler::generateRowData(const int move) {
     // Read our screen data from OpenGL
     constexpr int bufSize = TTT::screenWidth * TTT::screenHeight * 3; // 3 bytes for GL_RGB
     GLubyte *data = static_cast<GLubyte*>(malloc(bufSize));
-    if (!data) return;
+    if (!data) return "FAILURE";
     glReadPixels(0, 0, TTT::screenWidth, TTT::screenHeight, GL_RGB, GL_UNSIGNED_BYTE, data);
 
     // Each row of pixels has TTT::screenWidth * 3 bytes. Each row has TTT::screenWidth pixels. So, for 600x600 resolution, we have 1800 bytes per row. We have 600 rows. So in total, we're dealing with ~1M bytes.
@@ -62,7 +47,7 @@ void CSVHandler::exportMove(const int move) {
     }
     if (rowResults.size() != 1800) {
         std::cerr << "Incorrect row reduction." << std::endl;
-        return;
+        return "FAILURE";
     }
 
     // handle column reduction
@@ -84,7 +69,7 @@ void CSVHandler::exportMove(const int move) {
     }
     if (colResults.size() != 9) {
         std::cerr << "Incorrect col reduction." << std::endl;
-        return;
+        return "FAILURE";
     }
 
     // adjust column values so they're in the range 0-15
@@ -98,9 +83,33 @@ void CSVHandler::exportMove(const int move) {
         temp << val << ",";
     } temp << std::dec << move; // output the move in decimal
     
-    // Write to our output file
+    // Write to our output string
     std::string result(temp.str());
-    file << result << std::endl;
-    file.close();
+
+    // Free the screen data
     free(data);
+
+    // Return
+    return result;
+}
+
+void CSVHandler::exportMove(const int move) {
+    std::string outPath = std::filesystem::path(CSV_PATH).string() + "/out_log.csv";
+
+    std::ofstream file;
+    file.exceptions(file.exceptions() | std::ios::failbit);
+    try {
+        file.open(outPath.c_str(), std::ios::app);
+    } catch (std::exception e) {
+        std::cerr << "Unable to open CSV log file: " << outPath << " --> " << e.what() << std::endl;
+        return;
+    }
+
+    // Write to our output file
+    std::string result = generateRowData(move);
+    if (result != "FAILURE") {
+           file << result << std::endl;
+    }
+
+    file.close();
 }

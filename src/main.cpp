@@ -8,6 +8,8 @@
 
 #include <chrono>
 #include <iostream>
+#include <queue>
+#include <mutex>
 #include <stdio.h>
 #include <stdlib.h>
 #include <thread>
@@ -20,6 +22,8 @@
 
 bool trainingMode = true; // If we're in training or testing mode
 std::atomic<bool> killThread = false;
+std::queue<std::string> msgQueue;
+std::mutex queueLock;
 
 // Khronos debug function (see https://www.khronos.org/opengl/wiki/OpenGL_Error)
 void GLAPIENTRY MessageCallback( GLenum source,
@@ -217,7 +221,22 @@ void runModel() {
     std::cout << "Model running..." << std::endl;
 
     while(!killThread) {
+        // Read whatever python output may exist
         readFromPython(pyStd_OUT_RD);
+
+        // Process queue elements
+        {
+            const std::lock_guard<std::mutex> lock(queueLock); // We've now locked the message queue and can process safely
+            if (!msgQueue.empty()) {
+                while (!msgQueue.empty()) {
+                    writeToPython(pyStd_IN_WR, msgQueue.front());
+                    msgQueue.pop();
+                }
+            }
+        } // End of processing scope, we use this scope since the mutex is unlocked when it leaves scope
+
+        // Sleep
+        std::this_thread::sleep_for(std::chrono::milliseconds(500));
     }
 
     // Shutdown
@@ -302,7 +321,7 @@ int main() {
             }
 
             if (const auto* mouse = event->getIf<sf::Event::MouseButtonPressed>()) {
-                if (mouse->button == sf::Mouse::Button::Left) {
+                if (trainingMode && mouse->button == sf::Mouse::Button::Left) {
                     // Get the mouse position in window coordinates and hand off to handler 
                     sf::Vector2f mousePosWindow = window.mapPixelToCoords(sf::Mouse::getPosition(window));
                     std::cout << "Clicked: (" << mousePosWindow.x << "," << mousePosWindow.y << ")" << std::endl;
@@ -335,6 +354,12 @@ int main() {
                 if (key->scancode == sf::Keyboard::Scancode::M) {
                     trainingMode = !trainingMode;
                     std::cout << "TRAINING MODE = " << trainingMode << std::endl;
+                }
+
+                if (!trainingMode && key->scancode == sf::Keyboard::Scancode::N) {
+                    std::cout << "Asking AI for move..." << std::endl;
+                    const std::lock_guard<std::mutex> lock(queueLock); // we are now locked until lock goes out of scope
+                    msgQueue.push(std::string(csvHandler.generateRowData(-1)));
                 }
             }
         }

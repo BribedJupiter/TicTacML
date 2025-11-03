@@ -45,12 +45,21 @@ actual = np.concatenate([y_fold2, y_fold1])
 predicted = np.concatenate([prediction1, prediction2])
 
 # Output confusion matrix, accuracy score
-print("Confusion matrix:\n", confusion_matrix(actual, predicted))
-print("Accuracy:", accuracy_score(actual, predicted))
+print("[PYTHON] Confusion matrix:\n", confusion_matrix(actual, predicted))
+print("[PYTHON] Accuracy:", accuracy_score(actual, predicted))
+sys.stdout.flush()
 
 #############
 ### TEST ###
 #############
-while (True):
+shutdown = False
+while (not shutdown):
     for line in sys.stdin:
-        print(f"Received: {line.strip()}")
+        line = line.strip()
+        if line == "shutdown":
+            shutdown = True
+            print("[PYTHON] Shutting down...")
+            sys.stdout.flush()
+            break
+        print("[PYTHON] Received: ", line)
+        sys.stdout.flush()

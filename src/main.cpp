@@ -10,13 +10,15 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <thread>
+#include <windows.h>
+#include <atomic>
 #include <string>
 
 #include "Game.h"
 #include "constants.h"
 
 bool trainingMode = true; // If we're in training or testing mode
-bool killThread = false;
+std::atomic<bool> killThread = false;
 
 // Khronos debug function (see https://www.khronos.org/opengl/wiki/OpenGL_Error)
 void GLAPIENTRY MessageCallback( GLenum source,
@@ -117,21 +119,123 @@ void checkPipeOutput(FILE* proc) {
     }
 }
 
+void writeToPython(HANDLE pyStdInWr, std::string message) {
+    // See https://learn.microsoft.com/en-us/windows/win32/procthread/creating-a-child-process-with-redirected-input-and-output
+
+    // Prepare message
+    std::string msg = message += "\n";
+
+    // Write the message (Python must consume it to be non-blocking)
+    // See https://learn.microsoft.com/en-us/windows/win32/api/fileapi/nf-fileapi-writefile
+    DWORD bytesWritten = 0;
+    BOOL success = WriteFile(pyStdInWr, msg.c_str(),(DWORD)msg.size(), &bytesWritten, NULL);
+    
+    // Error checking
+    if (!success) {
+        std::cerr << "Failed to write to Python: " << GetLastError() << std::endl;
+        return;
+    }
+
+    // Otherwise
+    std::cout << std::flush << "Wrote " << bytesWritten << " bytes to Python" << std::endl; 
+}
+
+void readFromPython(HANDLE pyStdOutRd) {
+    // See https://learn.microsoft.com/en-us/windows/win32/procthread/creating-a-child-process-with-redirected-input-and-output    
+
+    // See https://learn.microsoft.com/en-us/windows/win32/api/namedpipeapi/nf-namedpipeapi-peeknamedpipe
+    DWORD bytesToRead = 0;
+    if (!PeekNamedPipe(pyStdOutRd, NULL, 0, NULL, &bytesToRead, NULL)) {
+        std::cerr << "Failure to peek at pyStdOutRd" << std::endl;
+        return;
+    }
+
+    // If we have nothing available to read, then return
+    if (bytesToRead == 0) {
+        return;
+    }
+    
+    // See also: https://learn.microsoft.com/en-us/windows/win32/api/fileapi/nf-fileapi-readfile
+    BOOL success = FALSE;
+    DWORD bytesRead = 0;
+    char buf[512];
+    success = ReadFile(pyStdOutRd, buf, sizeof(buf), &bytesRead, NULL);
+    if (success && bytesRead > 0) {
+        DWORD bytesWritten;
+        WriteFile(GetStdHandle(STD_OUTPUT_HANDLE), buf, bytesRead, &bytesWritten, NULL);
+    }
+
+    std::cout << std::flush << "Read " << bytesRead << " bytes from Python" << std::endl;
+}
+
 void runModel() {
     // Run our python model as a subprocess, we'll exchange input and output in the main update loop
     std::string cmd = "python " + std::string(MODEL_PATH) + " " + std::string(CSV_PATH) + "/out_log.csv";
-    FILE* proc = _popen(cmd.c_str(), "r");
-    if (proc == NULL) {
+
+    // see https://learn.microsoft.com/en-us/windows/win32/procthread/creating-a-child-process-with-redirected-input-and-output
+    HANDLE pyStd_IN_RD = NULL;
+    HANDLE pyStd_IN_WR = NULL;
+    HANDLE pyStd_OUT_RD = NULL;
+    HANDLE pyStd_OUT_WR = NULL;
+    SECURITY_ATTRIBUTES sas;
+    sas.nLength = sizeof(SECURITY_ATTRIBUTES);
+    sas.bInheritHandle = TRUE; // Allow inherited pipe handles
+    sas.lpSecurityDescriptor = NULL;
+
+    // Create pipes (see https://learn.microsoft.com/en-us/windows/win32/api/namedpipeapi/nf-namedpipeapi-createpipe)
+    if (!CreatePipe(&pyStd_OUT_RD, &pyStd_OUT_WR, &sas, 0)) {
+        std::cerr << "Failed to create pipe: STDOUT" << std::endl;
+        return; // TODO: Beware these early returns
+    }
+
+    // Block read STDOUT inheritance (this avoids conflicts with the normal CreateProcess inheritance mechanism, I think)
+    SetHandleInformation(pyStd_OUT_RD, HANDLE_FLAG_INHERIT, 0);
+
+    // Handle STDIN pipe
+    if (!CreatePipe(&pyStd_IN_RD, &pyStd_IN_WR, &sas, 0)) {
+        std::cerr << "Failed to create pipe: STDIN" << std::endl;
         return;
-    };
+    }
+
+    // Block write to STDIN inheritance
+    SetHandleInformation(pyStd_IN_WR, HANDLE_FLAG_INHERIT, 0);
+
+    // Create the child process for Python (see https://learn.microsoft.com/en-us/windows/win32/procthread/creating-processes)
+    STARTUPINFO si;
+    PROCESS_INFORMATION pi;
+    ZeroMemory(&si, sizeof(si));
+    si.cb = sizeof(si);
+    si.hStdError = pyStd_OUT_WR; // Connect to the pre-defined pipes we made earlier
+    si.hStdOutput = pyStd_OUT_WR;
+    si.hStdInput = pyStd_IN_RD;
+    si.dwFlags |= STARTF_USESTDHANDLES;
+    ZeroMemory(&pi, sizeof(pi));
+
+    if (!CreateProcess(NULL, cmd.data(), NULL, NULL, TRUE, 0, NULL, NULL, &si, &pi)) {
+        std::cerr << "Failed to spawn subprocess" << std::endl;
+        return;
+    }
+
+    // Close handles unneeded by parent
+    CloseHandle(pyStd_OUT_WR);
+    CloseHandle(pyStd_IN_RD);
+
+    // We're running!
     std::cout << "Model running..." << std::endl;
 
     while(!killThread) {
-        checkPipeOutput(proc);
-        sendPipeInput(proc, "Hello");
+        readFromPython(pyStd_OUT_RD);
+        // writeToPython(pyStd_IN_WR, "Hello Python");
     }
 
-    int modelReturn = _pclose(proc);
+    // Shutdown
+    writeToPython(pyStd_IN_WR, "shutdown"); // tell python to shutdown
+    readFromPython(pyStd_OUT_RD); // Read final Python output
+    int modelReturn = WaitForSingleObject(pi.hProcess, INFINITE);
+    CloseHandle(pi.hProcess);
+    CloseHandle(pi.hThread);
+    CloseHandle(pyStd_OUT_RD);
+    CloseHandle(pyStd_IN_WR);
     std::cout << "Model subprocess exited with code " << modelReturn << std::endl;
 }
 
@@ -250,6 +354,7 @@ int main() {
     }
 
     // Clean up & release resources
+    std::cout << "Closing..." << std::endl;
     killThread = true;
     mgr.join();
 }

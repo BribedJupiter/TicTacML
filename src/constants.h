@@ -1,3 +1,6 @@
+#ifndef CONSTANTS_H
+#define CONSTANTS_H
+
 #include <filesystem>
 #include <string>
 
@@ -9,5 +12,4 @@ namespace TTT {
     constexpr int screenHeight = 600;
     constexpr float lineWidth = 0.05f;
 };
-
-
+#endif

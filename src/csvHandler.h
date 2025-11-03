@@ -4,6 +4,7 @@
 class CSVHandler {
     public:
         void exportGameResults();
+        void exportMove();
 };
 
 #endif

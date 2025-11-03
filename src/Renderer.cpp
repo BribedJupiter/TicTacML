@@ -27,7 +27,7 @@ Renderer::Renderer() {
     // Prepare OpenGL and its shader pipeline
     //*********************************************************
     // GL Setup
-    glClearColor(0.1f, 0.0f, 0.1f, 1.0f);
+    glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 
     // Compile vertex shader
     const char* vertexShaderSource = vertexShaderString.c_str();

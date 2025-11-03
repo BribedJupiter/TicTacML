@@ -142,9 +142,6 @@ class GameBoard {
 
         // Reference to our OpenGL rendering object
         Renderer& glRenderer;
-
-        // Handler for CSV output for model training
-        CSVHandler csvHandler;
         
         // Reset the grid
         void clearGrid();

@@ -122,9 +122,14 @@ int main() {
     // Setup the game
     GameBoard board = GameBoard(glRenderer);
 
+    // For handling our generate data to implement the ML model
+    CSVHandler csvHandler;
+
     // Enable debug output (see https://www.khronos.org/opengl/wiki/OpenGL_Error)
     glEnable( GL_DEBUG_OUTPUT );
     glDebugMessageCallback( MessageCallback, 0 );
+    glPixelStorei(GL_PACK_ROW_LENGTH, TTT::screenWidth); // Set to screenWidth number of pixels per row
+    glPixelStorei(GL_PACK_ALIGNMENT, 1); // Set to 1 byte pixel row alignment
     
     //*********************************************************
     // Begin the main game loop
@@ -150,6 +155,10 @@ int main() {
                     sf::Vector2f mousePosWindow = window.mapPixelToCoords(sf::Mouse::getPosition(window));
                     std::cout << "Clicked: (" << mousePosWindow.x << "," << mousePosWindow.y << ")" << std::endl;
                     handleClick(mousePosWindow, window, board);
+
+                    // Export screen data to CSV
+                    csvHandler.exportMove();
+
                     // Check if either side has won
                     const auto winData = board.checkWin();
                     if (winData.first != 0 && !board.isOver()) {

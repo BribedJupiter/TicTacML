@@ -111,7 +111,7 @@ int main() {
     // Start machine learning model (Windows only)
     //*********************************************************
     // Run our python model as a subprocess, we'll exchange input and output in the main update loop
-    std::string cmd = "python " + std::string(MODEL_PATH);
+    std::string cmd = "python " + std::string(MODEL_PATH) + " " + std::string(CSV_PATH) + "/out_log.csv";
     FILE* proc = _popen(cmd.c_str(), "r");
     if (proc == NULL) {
         return -1;

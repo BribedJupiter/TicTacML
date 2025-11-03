@@ -9,10 +9,14 @@
 #include <iostream>
 #include <stdio.h>
 #include <stdlib.h>
+#include <thread>
 #include <string>
 
 #include "Game.h"
 #include "constants.h"
+
+bool trainingMode = true; // If we're in training or testing mode
+bool killThread = false;
 
 // Khronos debug function (see https://www.khronos.org/opengl/wiki/OpenGL_Error)
 void GLAPIENTRY MessageCallback( GLenum source,
@@ -80,7 +84,8 @@ int handleClick(const sf::Vector2f mousePosWindow, const sf::RenderWindow& windo
     // The idea is we want the screen data to represent the state before we make the move,
     // and the move we provide to be the "next move". This is because we want to predict future moves
     // based o ncurrent screen data.
-    if (cell >= 0) {
+    // If we're in training mode, then we want to export our move data
+    if (trainingMode && cell >= 0) {
         csvHandler.exportMove(cell);
     }
 
@@ -97,27 +102,44 @@ int handleClick(const sf::Vector2f mousePosWindow, const sf::RenderWindow& windo
     return cell;
 }
 
+void sendPipeInput(FILE* proc, std::string text) {
+    if (proc == NULL) return;
+    fputs(text.c_str(), proc);
+    fflush(proc);
+}
+
 // See here: https://learn.microsoft.com/en-us/cpp/c-runtime-library/reference/popen-wpopen
 void checkPipeOutput(FILE* proc) {
     if (proc == NULL) return;
     char buf[128];
-    while (fgets(buf, sizeof(buf), proc)) {
-        std::cout << buf;
-    } std::cout << std::endl;
+    while (fgets(buf, sizeof(buf), proc) != NULL) {
+        std::cout << buf << std::flush;
+    }
+}
+
+void runModel() {
+    // Run our python model as a subprocess, we'll exchange input and output in the main update loop
+    std::string cmd = "python " + std::string(MODEL_PATH) + " " + std::string(CSV_PATH) + "/out_log.csv";
+    FILE* proc = _popen(cmd.c_str(), "r");
+    if (proc == NULL) {
+        return;
+    };
+    std::cout << "Model running..." << std::endl;
+
+    while(!killThread) {
+        checkPipeOutput(proc);
+        sendPipeInput(proc, "Hello");
+    }
+
+    int modelReturn = _pclose(proc);
+    std::cout << "Model subprocess exited with code " << modelReturn << std::endl;
 }
 
 int main() {
     //*********************************************************
     // Start machine learning model (Windows only)
     //*********************************************************
-    // Run our python model as a subprocess, we'll exchange input and output in the main update loop
-    std::string cmd = "python " + std::string(MODEL_PATH) + " " + std::string(CSV_PATH) + "/out_log.csv";
-    FILE* proc = _popen(cmd.c_str(), "r");
-    if (proc == NULL) {
-        return -1;
-    };
-    std::cout << "Model running..." << std::endl;
-
+    std::thread mgr(runModel);
 
     //*********************************************************
     // Create the SFML window, OpenGL context, and setup GLAD
@@ -170,9 +192,6 @@ int main() {
 
     bool running = true;
     while (running) {
-        // Update python subprocess output
-        checkPipeOutput(proc);
-
         while (const std::optional event = window.pollEvent())
         {
             // TODO: Change these to callbacks
@@ -215,6 +234,11 @@ int main() {
                     // Toggle wireframe draw
                     glRenderer.toggleWireframe();
                 }
+
+                if (key->scancode == sf::Keyboard::Scancode::M) {
+                    trainingMode = !trainingMode;
+                    std::cout << "TRAINING MODE = " << trainingMode << std::endl;
+                }
             }
         }
 
@@ -226,6 +250,6 @@ int main() {
     }
 
     // Clean up & release resources
-    int modelReturn = _pclose(proc);
-    std::cout << "Model subprocess exited with code " << modelReturn << std::endl;
+    killThread = true;
+    mgr.join();
 }

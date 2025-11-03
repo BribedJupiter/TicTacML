@@ -7,6 +7,10 @@ from sklearn.metrics import accuracy_score
 from sklearn.tree import DecisionTreeClassifier
 import numpy as np
 
+#############
+### TRAIN ###
+#############
+
 # Read our CSV data
 csv_filepath = sys.argv[1]
 print("CSV PATH: ", csv_filepath)
@@ -43,3 +47,10 @@ predicted = np.concatenate([prediction1, prediction2])
 # Output confusion matrix, accuracy score
 print("Confusion matrix:\n", confusion_matrix(actual, predicted))
 print("Accuracy:", accuracy_score(actual, predicted))
+
+#############
+### TEST ###
+#############
+while (True):
+    for line in sys.stdin:
+        print(f"Received: {line.strip()}")

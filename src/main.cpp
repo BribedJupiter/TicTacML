@@ -24,10 +24,10 @@ void GLAPIENTRY MessageCallback( GLenum source,
 }
 
 // Translate a mouse click into placing an element on the board
-void handleClick(const sf::Vector2f mousePosWindow, const sf::RenderWindow& window, GameBoard& board) {
+int handleClick(const sf::Vector2f mousePosWindow, const sf::RenderWindow& window, GameBoard& board) {
     // If the game is over, do nothing.
     if (board.isOver()) {
-        return;
+        return -1;
     }
 
     // Determine the widths and heights of the colums and rows
@@ -40,7 +40,7 @@ void handleClick(const sf::Vector2f mousePosWindow, const sf::RenderWindow& wind
     // Check if the position is invalid
     if (mousePosWindow.x < 0 || mousePosWindow.x > windowSize.x || mousePosWindow.y < 0 || mousePosWindow.y > windowSize.y) {
         std::cout << "ERROR::WINDOW::MOUSE_BEYOND_BOUNDS" << std::endl;
-        return;
+        return  -1;
     }
 
     // TODO: There's likely a better algorithm to do this. Can I remove any of these if statements?
@@ -70,7 +70,7 @@ void handleClick(const sf::Vector2f mousePosWindow, const sf::RenderWindow& wind
     // Check to make sure we don't place a shape an an occupied cell 
     if (!board.canPlace(cell)) {
         std::cout << "Cannot place on already placed cell." << std::endl;
-        return;
+        return  -1;
     }
 
     // Draw a shape depending on the current turn
@@ -83,6 +83,7 @@ void handleClick(const sf::Vector2f mousePosWindow, const sf::RenderWindow& wind
     // Some debug output
     std::cout << "Clicked cell: " << cell << std::endl;
     board.printGrid();
+    return cell;
 }
 
 int main() {
@@ -154,10 +155,12 @@ int main() {
                     // Get the mouse position in window coordinates and hand off to handler 
                     sf::Vector2f mousePosWindow = window.mapPixelToCoords(sf::Mouse::getPosition(window));
                     std::cout << "Clicked: (" << mousePosWindow.x << "," << mousePosWindow.y << ")" << std::endl;
-                    handleClick(mousePosWindow, window, board);
+                    int move = handleClick(mousePosWindow, window, board);
 
-                    // Export screen data to CSV
-                    csvHandler.exportMove();
+                    // Export screen data to CSV if it's a valid move
+                    if (move >= 0) {
+                        csvHandler.exportMove(move);
+                    }
 
                     // Check if either side has won
                     const auto winData = board.checkWin();

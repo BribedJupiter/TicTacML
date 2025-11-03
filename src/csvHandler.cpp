@@ -14,8 +14,8 @@ void CSVHandler::exportGameResults() {
 
 }
 
-void CSVHandler::exportMove() {
-    std::string outPath = std::filesystem::path(CSV_PATH).string() + "/out_log.txt";
+void CSVHandler::exportMove(const int move) {
+    std::string outPath = std::filesystem::path(CSV_PATH).string() + "/out_log.csv";
 
     std::ofstream file;
     file.exceptions(file.exceptions() | std::ios::failbit);
@@ -95,8 +95,8 @@ void CSVHandler::exportMove() {
     
     // Output the move's information as a row to the output log
     for (auto val : colResults) {
-        temp << val;
-    }
+        temp << val << ",";
+    } temp << std::dec << move; // output the move in decimal
     
     // Write to our output file
     std::string result(temp.str());

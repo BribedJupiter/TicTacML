@@ -21,5 +21,6 @@ target_compile_features(main PRIVATE cxx_std_17)
 target_compile_definitions(main PRIVATE
     SHADER_PATH="${CMAKE_SOURCE_DIR}/shaders"
     CSV_PATH="${CMAKE_SOURCE_DIR}/csvout"
+    MODEL_PATH="${CMAKE_SOURCE_DIR}/src/model.py"
 )
 target_link_libraries(main PRIVATE SFML::Graphics SFML::Audio SFML::Network)

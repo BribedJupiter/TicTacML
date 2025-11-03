@@ -7,6 +7,9 @@
 #include <SFML/Window/Mouse.hpp>
 
 #include <iostream>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string>
 
 #include "Game.h"
 #include "constants.h"
@@ -86,7 +89,28 @@ int handleClick(const sf::Vector2f mousePosWindow, const sf::RenderWindow& windo
     return cell;
 }
 
+// See here: https://learn.microsoft.com/en-us/cpp/c-runtime-library/reference/popen-wpopen
+void checkPipeOutput(FILE* proc) {
+    if (proc == NULL) return;
+    char buf[128];
+    while (fgets(buf, sizeof(buf), proc)) {
+        std::cout << buf;
+    } std::cout << std::endl;
+}
+
 int main() {
+    //*********************************************************
+    // Start machine learning model (Windows only)
+    //*********************************************************
+    // Run our python model as a subprocess, we'll exchange input and output in the main update loop
+    std::string cmd = "python " + std::string(MODEL_PATH);
+    FILE* proc = _popen(cmd.c_str(), "r");
+    if (proc == NULL) {
+        return -1;
+    };
+    std::cout << "Model running..." << std::endl;
+
+
     //*********************************************************
     // Create the SFML window, OpenGL context, and setup GLAD
     //*********************************************************
@@ -138,6 +162,9 @@ int main() {
 
     bool running = true;
     while (running) {
+        // Update python subprocess output
+        checkPipeOutput(proc);
+
         while (const std::optional event = window.pollEvent())
         {
             // TODO: Change these to callbacks
@@ -196,4 +223,6 @@ int main() {
     }
 
     // Clean up & release resources
+    int modelReturn = _pclose(proc);
+    std::cout << "Model subprocess exited with code " << modelReturn << std::endl;
 }

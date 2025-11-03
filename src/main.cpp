@@ -27,7 +27,7 @@ void GLAPIENTRY MessageCallback( GLenum source,
 }
 
 // Translate a mouse click into placing an element on the board
-int handleClick(const sf::Vector2f mousePosWindow, const sf::RenderWindow& window, GameBoard& board) {
+int handleClick(const sf::Vector2f mousePosWindow, const sf::RenderWindow& window, GameBoard& board, CSVHandler& csvHandler) {
     // If the game is over, do nothing.
     if (board.isOver()) {
         return -1;
@@ -74,6 +74,14 @@ int handleClick(const sf::Vector2f mousePosWindow, const sf::RenderWindow& windo
     if (!board.canPlace(cell)) {
         std::cout << "Cannot place on already placed cell." << std::endl;
         return  -1;
+    }
+
+    // Export screen data to CSV if it's a valid move BEFORE we update the game board
+    // The idea is we want the screen data to represent the state before we make the move,
+    // and the move we provide to be the "next move". This is because we want to predict future moves
+    // based o ncurrent screen data.
+    if (cell >= 0) {
+        csvHandler.exportMove(cell);
     }
 
     // Draw a shape depending on the current turn
@@ -182,12 +190,7 @@ int main() {
                     // Get the mouse position in window coordinates and hand off to handler 
                     sf::Vector2f mousePosWindow = window.mapPixelToCoords(sf::Mouse::getPosition(window));
                     std::cout << "Clicked: (" << mousePosWindow.x << "," << mousePosWindow.y << ")" << std::endl;
-                    int move = handleClick(mousePosWindow, window, board);
-
-                    // Export screen data to CSV if it's a valid move
-                    if (move >= 0) {
-                        csvHandler.exportMove(move);
-                    }
+                    int move = handleClick(mousePosWindow, window, board, csvHandler);
 
                     // Check if either side has won
                     const auto winData = board.checkWin();

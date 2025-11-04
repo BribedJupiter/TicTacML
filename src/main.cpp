@@ -428,7 +428,7 @@ int main() {
                         // See if we have a valid choice
                         std::cout << "UPDATE - Attempting to lock on move" << std::endl;
                         const std::lock_guard<std::mutex> lock(moveLock);
-                        if (g_cellMove > 0) {
+                        if (g_cellMove >= 0) {
                             receivedResp = true; // we have now received a response, so see if we can play it
                             if (board.canPlace(g_cellMove)) {
                                 std::cout << "Finally found a move on attempt " << attempts << ". Playing " << g_cellMove << std::endl;

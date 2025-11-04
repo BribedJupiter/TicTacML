@@ -29,7 +29,7 @@ Some quick details:
 - constants.h - Provide constants for use across the whole program.
 - csvHandler.cpp/.h - Manage the export of CSV data.
 - Game.h - Header file for game logic-related classes.
-- GameBoard.cpp - The class responsible for managing all logic game state information.
+- GameBoard.cpp - The class responsible for managing all logical game state information.
 - Renderer.cpp - The class responsible for managing all rendering and most OpenGL code.
 - model.py - The Python file run as a subprocess by our application that trains the model and then waits and responds to move requests from the Tic-Tac-Toe game. 
 - main.py - Handle general processes for the application. Launch the application, process user-input, manage the IPC thread and the Python subprocess. 

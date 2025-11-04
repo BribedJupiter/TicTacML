@@ -126,6 +126,7 @@ int handleClick(const sf::Vector2f mousePosWindow, const sf::RenderWindow& windo
 }
 
 void writeToPython(HANDLE pyStdInWr, std::string message) {
+    auto tid = std::this_thread::get_id();
     // See https://learn.microsoft.com/en-us/windows/win32/procthread/creating-a-child-process-with-redirected-input-and-output
 
     // Prepare message
@@ -138,21 +139,22 @@ void writeToPython(HANDLE pyStdInWr, std::string message) {
     
     // Error checking
     if (!success) {
-        std::cerr << "Failed to write to Python: " << GetLastError() << std::endl;
+        std::cerr << "[" << tid << "] " << "Failed to write to Python: " << GetLastError() << std::endl;
         return;
     }
 
     // Otherwise
-    std::cout << std::flush << "Wrote " << bytesWritten << " bytes to Python saying " << message << std::endl; 
+    std::cout << std::flush << "[" << tid << "] " << "Wrote " << bytesWritten << " bytes to Python saying " << message << std::endl; 
 }
 
 void readFromPython(HANDLE pyStdOutRd) {
+    auto tid = std::this_thread::get_id();
     // See https://learn.microsoft.com/en-us/windows/win32/procthread/creating-a-child-process-with-redirected-input-and-output    
 
     // See https://learn.microsoft.com/en-us/windows/win32/api/namedpipeapi/nf-namedpipeapi-peeknamedpipe
     DWORD bytesToRead = 0;
     if (!PeekNamedPipe(pyStdOutRd, NULL, 0, NULL, &bytesToRead, NULL)) {
-        std::cerr << "Failure to peek at pyStdOutRd" << std::endl;
+        std::cerr << "[" << tid << "] " << "Failure to peek at pyStdOutRd" << std::endl;
         return;
     }
 
@@ -175,21 +177,24 @@ void readFromPython(HANDLE pyStdOutRd) {
         // std::string::find will search for a string and then return the index of the occurrence
         size_t cmd = result.find("READY");
         if (cmd != std::string::npos) {
-            std::cout << "Python ready..." << std::endl;
+            std::cout << "[" << tid << "] " << "Python ready..." << std::endl;
         }
 
         size_t rspmv = result.find("RSPMV");
         if (rspmv != std::string::npos) {
+            std::cout << "[" << tid << "] " << "RSPMV - Attempting to lock on move" << std::endl;
             const std::lock_guard<std::mutex> lock(moveLock);
-            std::cout << "Received move: " << result[rspmv + 6] << std::endl;
+            std::cout << "[" << tid << "] "<< "Received move: " << result[rspmv + 6] << std::endl;
             const char* move = result.c_str() + rspmv + 6;
             g_cellMove = atoi(move); // convert from ASCII character to integer value
         }
     }
-    std::cout << std::flush << "Read " << bytesRead << " bytes from Python" << std::endl;
+    std::cout << std::flush << "[" << tid << "] " << "Read " << bytesRead << " bytes from Python" << std::endl;
 }
 
 void runModel() {
+    auto tid = std::this_thread::get_id();
+
     // Run our python model as a subprocess, we'll exchange input and output in the main update loop
     std::string cmd = "python " + std::string(MODEL_PATH) + " " + std::string(CSV_PATH) + "/out_log.csv";
 
@@ -205,7 +210,7 @@ void runModel() {
 
     // Create pipes (see https://learn.microsoft.com/en-us/windows/win32/api/namedpipeapi/nf-namedpipeapi-createpipe)
     if (!CreatePipe(&pyStd_OUT_RD, &pyStd_OUT_WR, &sas, 0)) {
-        std::cerr << "Failed to create pipe: STDOUT" << std::endl;
+        std::cerr << "[" << tid << "] " << "Failed to create pipe: STDOUT" << std::endl;
         return; // TODO: Beware these early returns
     }
 
@@ -214,7 +219,7 @@ void runModel() {
 
     // Handle STDIN pipe
     if (!CreatePipe(&pyStd_IN_RD, &pyStd_IN_WR, &sas, 0)) {
-        std::cerr << "Failed to create pipe: STDIN" << std::endl;
+        std::cerr << "[" << tid << "] " << "Failed to create pipe: STDIN" << std::endl;
         return;
     }
 
@@ -233,7 +238,7 @@ void runModel() {
     ZeroMemory(&pi, sizeof(pi));
 
     if (!CreateProcess(NULL, cmd.data(), NULL, NULL, TRUE, 0, NULL, NULL, &si, &pi)) {
-        std::cerr << "Failed to spawn subprocess" << std::endl;
+        std::cerr << "[" << tid << "] " << "Failed to spawn subprocess" << std::endl;
         return;
     }
 
@@ -242,7 +247,7 @@ void runModel() {
     CloseHandle(pyStd_IN_RD);
 
     // We're running!
-    std::cout << "Model running..." << std::endl;
+    std::cout << "[" << tid << "] " << "Model running..." << std::endl;
 
     while(!killThread) {
         // Read whatever python output may exist
@@ -250,6 +255,7 @@ void runModel() {
 
         // Process queue elements
         {
+            std::cout << "[" << tid << "] " << "QUEUECHECK - Attempting to lock on queue" << std::endl;
             const std::lock_guard<std::mutex> lock(queueLock); // We've now locked the message queue and can process safely
             if (!msgQueue.empty()) {
                 while (!msgQueue.empty()) {
@@ -272,7 +278,7 @@ void runModel() {
     CloseHandle(pi.hThread);
     CloseHandle(pyStd_OUT_RD);
     CloseHandle(pyStd_IN_WR);
-    std::cout << "Model subprocess exited with code " << modelReturn << std::endl;
+    std::cout << "[" << tid << "] " << "Model subprocess exited with code " << modelReturn << std::endl;
 }
 
 int main() {
@@ -374,10 +380,13 @@ int main() {
                 }
 
                 if (!trainingMode && key->scancode == sf::Keyboard::Scancode::N) {
-                    std::cout << "Asking AI for move..." << std::endl; 
-                    {
-                        const std::lock_guard<std::mutex> lock(queueLock); // we are now locked until lock goes out of scope
-                        msgQueue.push(std::string("RQSTMV[" + csvHandler.generateRowData(-1) + "]"));
+                    if (!board.isOver()) { // Why would you ask for a move after the game ends
+                        std::cout << "Asking AI for move..." << std::endl; 
+                        {
+                            std::cout << "AIREQUEST - Attempting to lock on queue" << std::endl;
+                            const std::lock_guard<std::mutex> lock(queueLock); // we are now locked until lock goes out of scope
+                            msgQueue.push(std::string("RQSTMV[" + csvHandler.generateRowData(-1) + "]&" + std::to_string(0)));
+                        }
                     }
                 }
             }
@@ -385,12 +394,57 @@ int main() {
 
         // Update board if the model has made a move
         if (g_cellMove >= 0) {
-            const std::lock_guard<std::mutex> lock(moveLock);
-            if (board.canPlace(g_cellMove)) {
-                playMove(board, g_cellMove);
+            int tempMove = -1;
+            {
+                // Read and reset the cell move value
+                std::cout << "FIRSTAIMOVE - Attempting to lock on move" << std::endl;
+                const std::lock_guard<std::mutex> lock(moveLock);
+                tempMove = g_cellMove;
+                g_cellMove = -1;
             }
-            // Reset the move
-            g_cellMove = -1;
+
+            // Check if we can place
+            if (board.canPlace(tempMove)) {
+                playMove(board, tempMove);
+            } else {
+                // Otherwise, request a move (blocking) over and over again until we find a valid one
+                bool found = false;
+                int attempts = 0;
+                bool receivedResp = true;
+                while (!found) {
+                    std::cout << "Model returned a bad value " << tempMove << ". Trying again: Attempt: " << attempts << std::endl;
+                    {
+                        // Publish a request
+                        std::cout << "UPDATE - Attempting to lock on queue" << std::endl;
+                        const std::lock_guard<std::mutex> lock(queueLock);
+                        if (receivedResp) { // Only publish a message if we aren't currently working on one
+                            std::cout << "Empty message queue. Making request..." << std::endl;
+                            msgQueue.push(std::string("RQSTMV[" + csvHandler.generateRowData(-1) + "]&" + std::to_string(attempts)));
+                            receivedResp = false;
+                        }
+                    }
+                    std::this_thread::sleep_for(std::chrono::milliseconds(500));
+                    {
+                        // See if we have a valid choice
+                        std::cout << "UPDATE - Attempting to lock on move" << std::endl;
+                        const std::lock_guard<std::mutex> lock(moveLock);
+                        if (g_cellMove > 0) {
+                            receivedResp = true; // we have now received a response, so see if we can play it
+                            if (board.canPlace(g_cellMove)) {
+                                std::cout << "Finally found a move on attempt " << attempts << ". Playing " << g_cellMove << std::endl;
+                                found = true;
+                                playMove(board, g_cellMove);
+                            } else {
+                                attempts += 1;
+                                std::cout << "Bad response: " << g_cellMove << std::endl;
+                            }
+                        } else {
+                            std::cout << "Move not ready yet: " << g_cellMove << std::endl;
+                        }
+                        g_cellMove = -1; // reset g_cellMove to force a new value
+                    }
+                }
+            }
         }
 
         // Draw the TicTacToe board on the screen

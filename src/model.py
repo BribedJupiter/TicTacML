@@ -7,6 +7,7 @@ from sklearn.metrics import accuracy_score
 from sklearn.tree import DecisionTreeClassifier
 from sklearn.neural_network import MLPClassifier
 import numpy as np
+import random
 
 #############
 ### TRAIN ###
@@ -60,7 +61,11 @@ model.fit(features, classes)
 print("[PYTHON] READY")
 sys.stdout.flush()
 
-def request_move(request):
+def request_move(request, attempts):
+    # If attempts > 10, randomly pick a value.
+    if attempts > 10:
+        return random.choice(range(9)) # Can only make moves for 0-8 (there are only 9 cells)
+
     # Remove the label from the row data (should be -1, invalid anyway). We have 9 features.
     # Also create a 2D list as this is what the model expects.
     req = [list(request[0:9])]
@@ -85,10 +90,17 @@ while (not shutdown):
             # The following line converts line to a str, then reduces it from the [ (+1 in order to not include the [) to the ], then 
             # delimits in by a , to create a list.
             cmd = str(line)[int(line.index("[")) + 1:int(line.index("]"))].split(",")
-            print("[PYTHON] Request:", line, " --> ", cmd)
+
+            # Parse the number of attempts. 
+            # Find all the characters from just after the & to the end of the line as a list. Join this list 
+            # into a string. Convert the string to an int.
+            attempts = int("".join(list(line[line.index("&") + 1:])))
+
+            # Output intermediate stage data
+            print("[PYTHON] Request:", line, " --> ", cmd, "Attempt:", attempts)
 
             # Now that we have the request, ask the model for a move
-            print("[PYTHON] RSPMV", request_move(cmd))
+            print("[PYTHON] RSPMV", request_move(cmd, attempts))
 
             sys.stdout.flush()
         else:

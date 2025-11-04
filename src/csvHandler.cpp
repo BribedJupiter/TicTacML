@@ -75,7 +75,6 @@ std::string CSVHandler::generateRowData(const int move) {
     // adjust column values so they're in the range 0-15
     for (auto iter = colResults.begin(); iter != colResults.end(); iter++) {
         *iter = *iter /= 16;
-        std::cout << *iter << std::endl;
     }
     
     // Output the move's information as a row to the output log

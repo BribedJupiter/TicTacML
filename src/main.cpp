@@ -24,6 +24,8 @@ bool trainingMode = true; // If we're in training or testing mode
 std::atomic<bool> killThread = false;
 std::queue<std::string> msgQueue;
 std::mutex queueLock;
+int g_cellMove = -1;
+std::mutex moveLock;
 
 // Khronos debug function (see https://www.khronos.org/opengl/wiki/OpenGL_Error)
 void GLAPIENTRY MessageCallback( GLenum source,
@@ -160,6 +162,14 @@ void readFromPython(HANDLE pyStdOutRd) {
         size_t cmd = result.find("READY");
         if (cmd != std::string::npos) {
             std::cout << "Python ready..." << std::endl;
+        }
+
+        size_t rspmv = result.find("RSPMV");
+        if (rspmv != std::string::npos) {
+            const std::lock_guard<std::mutex> lock(moveLock);
+            std::cout << "Received move: " << result[rspmv + 6] << std::endl;
+            const char* move = result.c_str() + rspmv + 6;
+            g_cellMove = atoi(move); // convert from ASCII character to integer value
         }
     }
     std::cout << std::flush << "Read " << bytesRead << " bytes from Python" << std::endl;
@@ -357,11 +367,33 @@ int main() {
                 }
 
                 if (!trainingMode && key->scancode == sf::Keyboard::Scancode::N) {
-                    std::cout << "Asking AI for move..." << std::endl;
-                    const std::lock_guard<std::mutex> lock(queueLock); // we are now locked until lock goes out of scope
-                    msgQueue.push(std::string("RQSTMV[" + csvHandler.generateRowData(-1) + "]"));
+                    std::cout << "Asking AI for move..." << std::endl; 
+                    {
+                        const std::lock_guard<std::mutex> lock(queueLock); // we are now locked until lock goes out of scope
+                        msgQueue.push(std::string("RQSTMV[" + csvHandler.generateRowData(-1) + "]"));
+                    }
                 }
             }
+        }
+
+        // Update board if the model has made a move
+        if (g_cellMove >= 0) {
+            const std::lock_guard<std::mutex> lock(moveLock);
+            // Draw a shape depending on the current turn
+            if (board.getTurn()) {
+                board.placeCircle(g_cellMove);
+            } else {
+                board.placeX(g_cellMove);
+            }
+            g_cellMove = -1;
+
+            // Check if either side has won
+            const auto winData = board.checkWin();
+            if (winData.first != 0 && !board.isOver()) {
+                // If we detect a game ending condition but haven't yet updated the board, end the game
+                board.endGame(winData);
+            }
+
         }
 
         // Draw the TicTacToe board on the screen

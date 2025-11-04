@@ -61,7 +61,8 @@ def request_move(request):
     req = [list(request[0:9])]
     print("[PYTHON] list: ", req) 
     sanitize_features(req) # Prepare features
-    return model.predict(req) 
+    result = model.predict(req) # will return an array
+    return result[0]
 
 #############
 ### TEST ###
@@ -82,7 +83,7 @@ while (not shutdown):
             print("[PYTHON] Request:", line, " --> ", cmd)
 
             # Now that we have the request, ask the model for a move
-            print("[PYTHON] Your move is...", request_move(cmd))
+            print("[PYTHON] RSPMV", request_move(cmd))
 
             sys.stdout.flush()
         else:

@@ -52,6 +52,9 @@ predicted = np.concatenate([prediction1, prediction2])
 print("[PYTHON] Confusion matrix:\n", confusion_matrix(actual, predicted))
 print("[PYTHON] Accuracy:", accuracy_score(actual, predicted))
 
+# Now that we have this baseline, train the model on ALL the input data
+model.fit(features, classes)
+
 print("[PYTHON] READY")
 sys.stdout.flush()
 

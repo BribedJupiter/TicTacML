@@ -6,6 +6,7 @@
 #include <SFML/Window/Keyboard.hpp>
 #include <SFML/Window/Mouse.hpp>
 
+#include <SFML/Window/WindowEnums.hpp>
 #include <chrono>
 #include <iostream>
 #include <queue>
@@ -302,7 +303,7 @@ int main() {
     contextSettings.sRgbCapable = true;
 
     // SFML Window Setup
-    sf::RenderWindow window(sf::VideoMode({TTT::screenWidth, TTT::screenHeight}), "TicTacML", sf::Style::Default, sf::State::Windowed, contextSettings);
+    sf::RenderWindow window(sf::VideoMode({TTT::screenWidth, TTT::screenHeight}), "TicTacML", sf::Style::Titlebar | sf::Style::Close, sf::State::Windowed, contextSettings);
     window.setFramerateLimit(144);
     window.setVerticalSyncEnabled(true);
     if (!window.setActive(true)) {
@@ -345,12 +346,8 @@ int main() {
             {
                 running = false;
             } 
-            else if (const auto* resized = event->getIf<sf::Event::Resized>())
-            {
-                glRenderer.resize(resized->size.x, resized->size.y);
-            }
 
-            if (const auto* mouse = event->getIf<sf::Event::MouseButtonPressed>()) {
+            else if (const auto* mouse = event->getIf<sf::Event::MouseButtonPressed>()) {
                 if (trainingMode && mouse->button == sf::Mouse::Button::Left) {
                     // Get the mouse position in window coordinates and hand off to handler 
                     sf::Vector2f mousePosWindow = window.mapPixelToCoords(sf::Mouse::getPosition(window));
@@ -359,27 +356,27 @@ int main() {
                 }
             }
             
-            if (const auto* key = event->getIf<sf::Event::KeyPressed>()) {
+            else  if (const auto* key = event->getIf<sf::Event::KeyPressed>()) {
                 if (key->scancode == sf::Keyboard::Scancode::Escape) {
                     running = false;
                 }
 
-                if (key->scancode == sf::Keyboard::Scancode::R) {
+                else if (key->scancode == sf::Keyboard::Scancode::R) {
                     // Reset the game to the start
                     board.reset();
                 }
 
-                if (key->scancode == sf::Keyboard::Scancode::T) {
+                else if (key->scancode == sf::Keyboard::Scancode::T) {
                     // Toggle wireframe draw
                     glRenderer.toggleWireframe();
                 }
 
-                if (key->scancode == sf::Keyboard::Scancode::M) {
+                else if (key->scancode == sf::Keyboard::Scancode::M) {
                     trainingMode = !trainingMode;
                     std::cout << "TRAINING MODE = " << trainingMode << std::endl;
                 }
 
-                if (!trainingMode && key->scancode == sf::Keyboard::Scancode::N) {
+                else if (!trainingMode && key->scancode == sf::Keyboard::Scancode::N) {
                     if (!board.isOver()) { // Why would you ask for a move after the game ends
                         std::cout << "Asking AI for move..." << std::endl; 
                         {

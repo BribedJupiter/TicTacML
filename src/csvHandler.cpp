@@ -20,7 +20,7 @@ std::string CSVHandler::generateRowData(const int move) {
     // Each row of pixels has TTT::screenWidth * 3 bytes. Each row has TTT::screenWidth pixels. So, for 600x600 resolution, we have 1800 bytes per row. We have 600 rows. So in total, we're dealing with ~1M bytes.
     // To reduce our data, we average every pixel together, which reduces us to 600 bytes per row for example. Now, we're dealing with a 600x600 grid. This is still far too large, so we will average every 200x200
     // area together. This would reduce our total output feature space to 9 dimensions.
-    // Since we know we're only working with a 600x600 pixel grid, we will hardcode that assumptions.
+    // Since we know we're only working with a 600x600 pixel grid, we will hardcode that assumption.
 
     // Practically, this means that in every row we average each 600 bytes (200 pixels) into 1 byte. This should yield 3 bytes per row. We then inspect the value of each byte and clamp it to the range [0-15] so we can use it as HEX.
     // So, we should get 3 HEX characters per row. Then, we avaerage the first 200 rows in each column, then the 2nd 200 rows, then the 3rd 200, in each column (clamping the same), to yield a 3x3 grid of 9 HEX characters after every move.
@@ -74,7 +74,7 @@ std::string CSVHandler::generateRowData(const int move) {
 
     // adjust column values so they're in the range 0-15
     for (auto iter = colResults.begin(); iter != colResults.end(); iter++) {
-        *iter = *iter /= 16;
+        *iter /= 16;
     }
     
     // Output the move's information as a row to the output log

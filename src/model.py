@@ -27,7 +27,7 @@ print("[PYTHON] CSV PATH: ", csv_filepath)
 data = read_csv(csv_filepath)
 
 # Prep our data arrays (a lot of this follows what we've been doing in the programming assignments)
-features = data.values[:, 0:8]
+features = data.values[:, 0:9]
 classes = data.values[:, 9]
 
 # Perform conversions so features array is valid
@@ -56,9 +56,12 @@ print("[PYTHON] READY")
 sys.stdout.flush()
 
 def request_move(request):
-    req = list(request[0:8]) # Remove the label from the row data (should be -1, invalid anyway). We have 8 features
+    # Remove the label from the row data (should be -1, invalid anyway). We have 9 features.
+    # Also create a 2D list as this is what the model expects.
+    req = [list(request[0:9])]
+    print("[PYTHON] list: ", req) 
     sanitize_features(req) # Prepare features
-    return model.predict([req]) 
+    return model.predict(req) 
 
 #############
 ### TEST ###

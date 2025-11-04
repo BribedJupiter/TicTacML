@@ -359,7 +359,7 @@ int main() {
                 if (!trainingMode && key->scancode == sf::Keyboard::Scancode::N) {
                     std::cout << "Asking AI for move..." << std::endl;
                     const std::lock_guard<std::mutex> lock(queueLock); // we are now locked until lock goes out of scope
-                    msgQueue.push(std::string(csvHandler.generateRowData(-1)));
+                    msgQueue.push(std::string("RQSTMV[" + csvHandler.generateRowData(-1) + "]"));
                 }
             }
         }

@@ -5,6 +5,7 @@ from sklearn.model_selection import train_test_split
 from sklearn.metrics import confusion_matrix
 from sklearn.metrics import accuracy_score
 from sklearn.tree import DecisionTreeClassifier
+from sklearn.neural_network import MLPClassifier
 import numpy as np
 
 #############
@@ -53,6 +54,7 @@ print("[PYTHON] Confusion matrix:\n", confusion_matrix(actual, predicted))
 print("[PYTHON] Accuracy:", accuracy_score(actual, predicted))
 
 # Now that we have this baseline, train the model on ALL the input data
+model = MLPClassifier()
 model.fit(features, classes)
 
 print("[PYTHON] READY")

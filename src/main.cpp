@@ -39,6 +39,25 @@ void GLAPIENTRY MessageCallback( GLenum source,
     std::cerr << "GL CALLBACK: " << message << std::endl;
 }
 
+void playMove(GameBoard& board, const int cell) {
+    // Draw a shape depending on the current turn
+    if (board.getTurn()) {
+        board.placeCircle(cell);
+    } else {
+        board.placeX(cell);
+    }
+
+    // Output debug board
+    board.printGrid();
+
+    // Check if either side has won
+    const auto winData = board.checkWin();
+    if (winData.first != 0 && !board.isOver()) {
+        // If we detect a game ending condition but haven't yet updated the board, end the game
+        board.endGame(winData);
+    }
+}
+
 // Translate a mouse click into placing an element on the board
 int handleClick(const sf::Vector2f mousePosWindow, const sf::RenderWindow& window, GameBoard& board, CSVHandler& csvHandler) {
     // If the game is over, do nothing.
@@ -98,16 +117,11 @@ int handleClick(const sf::Vector2f mousePosWindow, const sf::RenderWindow& windo
         csvHandler.exportMove(cell);
     }
 
-    // Draw a shape depending on the current turn
-    if (board.getTurn()) {
-        board.placeCircle(cell);
-    } else {
-        board.placeX(cell);
-    }
-
+    // Apply our move to the board
+    playMove(board, cell);
+    
     // Some debug output
     std::cout << "Clicked cell: " << cell << std::endl;
-    board.printGrid();
     return cell;
 }
 
@@ -336,13 +350,6 @@ int main() {
                     sf::Vector2f mousePosWindow = window.mapPixelToCoords(sf::Mouse::getPosition(window));
                     std::cout << "Clicked: (" << mousePosWindow.x << "," << mousePosWindow.y << ")" << std::endl;
                     int move = handleClick(mousePosWindow, window, board, csvHandler);
-
-                    // Check if either side has won
-                    const auto winData = board.checkWin();
-                    if (winData.first != 0 && !board.isOver()) {
-                        // If we detect a game ending condition but haven't yet updated the board, end the game
-                        board.endGame(winData);
-                    }
                 }
             }
             
@@ -379,21 +386,11 @@ int main() {
         // Update board if the model has made a move
         if (g_cellMove >= 0) {
             const std::lock_guard<std::mutex> lock(moveLock);
-            // Draw a shape depending on the current turn
-            if (board.getTurn()) {
-                board.placeCircle(g_cellMove);
-            } else {
-                board.placeX(g_cellMove);
+            if (board.canPlace(g_cellMove)) {
+                playMove(board, g_cellMove);
             }
+            // Reset the move
             g_cellMove = -1;
-
-            // Check if either side has won
-            const auto winData = board.checkWin();
-            if (winData.first != 0 && !board.isOver()) {
-                // If we detect a game ending condition but haven't yet updated the board, end the game
-                board.endGame(winData);
-            }
-
         }
 
         // Draw the TicTacToe board on the screen
